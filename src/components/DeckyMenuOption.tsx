@@ -1,6 +1,5 @@
 import { ButtonItem, Menu, MenuItem, PanelSection, PanelSectionRow, ServerAPI, showContextMenu } from 'decky-frontend-lib'
 import React from 'react'
-import logo from "../assets/logo.png";
 
 interface Props {
     serverAPI: ServerAPI
@@ -29,7 +28,7 @@ const DeckyMenuOption = ({serverAPI}: Props) => {
   
           <PanelSectionRow>
             <div style={{ display: "flex", justifyContent: "center" }}>
-              <img src={logo} />
+              panelsection
             </div>
           </PanelSectionRow>
   
