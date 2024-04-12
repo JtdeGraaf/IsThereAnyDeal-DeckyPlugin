@@ -29,32 +29,50 @@ const useUIComposition: (composition: UIComposition) => void = findModuleChild(
 
 
 const PriceComparison = () => {
+  const [isVisible, setIsVisible] = useState(false)
+  useUIComposition(isVisible ? UIComposition.Notification : UIComposition.Hidden)
 
-  const [label, setLabel] = useState("NOT PRESSED")
+  const [label, setLabel] = useState("PRESS R3 To show, and L3 to hide")
 
   useEffect(() => {
-    const registration =
-      registerForInputEvent(
-        (buttons, event) => {
-          if(buttons.includes(PhysicalButton.START) && buttons.includes(PhysicalButton.SELECT)){
-            setLabel("PRESSED!!!!")
-          }
+    registerForInputEvent(
+      (buttons, event) => {
+        if(buttons.includes(PhysicalButton.R3)){
+          setIsVisible(true)
         }
-      );
-
-    return () => {
-      registration.unregister();
-    };
+        if(buttons.includes(PhysicalButton.L3)){
+          setIsVisible(false)
+        }
+      }
+    );
   }, []);
 
-  useUIComposition(UIComposition.Notification)
+  
 
   return (
     <div style={{
-      zIndex:7002
+      marginLeft: 8,
+      marginTop: 8,
+      width: 236,
+      background: "23262e",
+      color: "ffffff",
+      boxShadow: "0px 0px 10px rgb(0 0 0 / 50%)" ,
+      display: "flex",
+      flexDirection: "row",
+      gap: 12,
+      alignItems: "center",
+      flexWrap: "nowrap",
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingTop: 7,
+      paddingBottom: 7,
+      zIndex: 7002, // volume bar is 7000
+      position: "fixed",
+      transform: `translateY(${isVisible ? 0 : -150}%)`,
+      transition: "transform 0.22s cubic-bezier(0, 0.73, 0.48, 1)",
     }}>
-      <Button  onClick={() => {useUIComposition(UIComposition.Hidden)}}>{label}</Button>
-    </div>
+      <Button  onClick={() => {setIsVisible(false)}}>{label}</Button>
+    </div> 
   )
 }
 
