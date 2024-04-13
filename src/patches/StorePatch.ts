@@ -1,4 +1,4 @@
-import { ServerAPI, findModuleChild } from "decky-frontend-lib"
+import { ServerAPI, findModuleChild, sleep } from "decky-frontend-lib"
 import { globalStates } from "../utils/GlobalStates"
 
 // All of the below is mindleslly stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
@@ -54,49 +54,45 @@ export const evaluationString = (
 
 
 
-export function patchStore(serverApi: ServerAPI): () => void {
+  export function patchStore(serverApi: ServerAPI): () => void {
+    let oldUrl = "";
     const unlisten = History.listen(async (info) => {
       try {
-        // Start the process if we navigate to the steam web browser
         if (info.pathname === '/steamweb') {
-          let oldUrl = ""
-          const getCurrentAppID = async () =>{
-            console.log("FETCHING APPID")
-
-              // get the currently running tabs
-            const response = await serverApi.fetchNoCors<{ body: string }>(
-              'http://localhost:8080/json'
-            )
-    
-            let tabs: Tab[] = []
-            if (response.success) tabs = JSON.parse(response.result.body) || []
-            // Find the tab the store is running on
-            const tab = tabs.find((t) =>
-              t.url.includes('https://store.steampowered.com')
-            )
-            if (tab?.url && tab.url !== oldUrl) {
-              const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1]
-              if (appId) {
-
-                console.log("APPID: " + appId)
-                globalStates.setAppId(appId)
-              }
-              else globalStates.setAppId("")
-            }
-            else {
-              globalStates.setAppId("")
-            }
-            getCurrentAppID()
-          }
-          getCurrentAppID()
-        }
-        else {
-          globalStates.setAppId("")
+          getCurrentAppID();
+        } else {
+          globalStates.setAppId("");
         }
       } catch (err) {
-        globalStates.setAppId("")
+        globalStates.setAppId("");
       }
-    })
-    return unlisten
+    });
+
+    const getCurrentAppID = async () => {
+      const response = await serverApi.fetchNoCors<{ body: string }>(
+        'http://localhost:8080/json'
+      );
+
+      let tabs: Tab[] = [];
+      if (response.success) tabs = JSON.parse(response.result.body) || [];
+      const tab = tabs.find((t) =>
+        t.url.includes('https://store.steampowered.com')
+      );
+
+      if (tab?.url && tab.url !== oldUrl) {
+        oldUrl = tab.url;
+        const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1];
+        if (appId) {
+          globalStates.setAppId(appId);
+        } else {
+          globalStates.setAppId("");
+        }
+      }
+
+      setTimeout(() => getCurrentAppID(), 1500)
+    };
+
+    return unlisten;
   }
+
   
