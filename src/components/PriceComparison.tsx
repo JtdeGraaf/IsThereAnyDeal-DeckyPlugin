@@ -1,6 +1,7 @@
 import { Button, findModuleChild } from 'decky-frontend-lib';
 import React, { useEffect, useState } from 'react'
 import { PhysicalButton, registerForInputEvent } from './ButtonRegistration';
+import { GlobalStates, globalStates } from '../utils/GlobalStates';
 
 enum UIComposition {
   Hidden = 0,
@@ -29,22 +30,20 @@ const useUIComposition: (composition: UIComposition) => void = findModuleChild(
 
 
 const PriceComparison = () => {
-  const [isVisible, setIsVisible] = useState(false)
-  useUIComposition(isVisible ? UIComposition.Notification : UIComposition.Hidden)
-
-  const [label, setLabel] = useState("PRESS R3 To show, and L3 to hide")
+  const [appId, setAppid] = useState()
+  useUIComposition(appId ? UIComposition.Notification : UIComposition.Hidden)
 
   useEffect(() => {
-    registerForInputEvent(
-      (buttons, event) => {
-        if(buttons.includes(PhysicalButton.R3)){
-          setIsVisible(true)
-        }
-        if(buttons.includes(PhysicalButton.L3)){
-          setIsVisible(false)
-        }
-      }
-    );
+    function loadAppId() {
+      globalStates.loadAppId().then(setAppid);
+    }
+
+    loadAppId();
+    globalStates.subscribe("PriceComparison", loadAppId);
+
+    return () => {
+      globalStates.unsubscribe("PriceComparison");
+    };
   }, []);
 
   
@@ -68,10 +67,10 @@ const PriceComparison = () => {
       paddingBottom: 7,
       zIndex: 7002, // volume bar is 7000
       position: "fixed",
-      transform: `translateY(${isVisible ? 0 : -150}%)`,
+      transform: `translateY(${appId ? 0 : -150}%)`,
       transition: "transform 0.22s cubic-bezier(0, 0.73, 0.48, 1)",
     }}>
-      <Button  onClick={() => {setIsVisible(false)}}>{label}</Button>
+      <Button>{appId}</Button>
     </div> 
   )
 }
