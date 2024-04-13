@@ -59,60 +59,42 @@ export function patchStore(serverApi: ServerAPI): () => void {
       try {
         // Start the process if we navigate to the steam web browser
         if (info.pathname === '/steamweb') {
-          // get the currently running tabs
-          const response = await serverApi.fetchNoCors<{ body: string }>(
-            'http://localhost:8080/json'
-          )
-  
-          let tabs: Tab[] = []
-          if (response.success) tabs = JSON.parse(response.result.body) || []
-          // Find the tab the store is running on
-          const tab = tabs.find((t) =>
-            t.url.includes('https://store.steampowered.com')
-          )
-          if (tab?.webSocketDebuggerUrl) {
-            // Connect to the tab
-            const ws = await new WebSocket(tab.webSocketDebuggerUrl)
-  
-            ws.onmessage = async ({ data }) => {
-              const parsedData = JSON.parse(data)
-            }
-            ws.addEventListener('open', async (event) => {
-              const injectedFunction = () => {
-                const yourFunction = () => {
-                  console.log(
-                    '######################NEW DOCUMENT LOADED####################'
-                  )
-                }
-                if (document.readyState === 'loading') {
-                  addEventListener('DOMContentLoaded', yourFunction)
-                } else {
-                  yourFunction()
-                }
-              }
-              await ws.send(
-                JSON.stringify({
-                  id: 1337,
-                  method: 'Page.addScriptToEvaluateOnNewDocument',
-                  params: {
-                    source: evaluationString(injectedFunction)
-                  }
-                })
-              )
-            })
-  
-            const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1]
-            if (appId) {
+          let oldUrl = ""
+          const getCurrentAppID = async () =>{
+            console.log("FETCHING APPID")
 
-              console.log("APPID: " + appId)
-              globalStates.setAppId(appId)
+              // get the currently running tabs
+            const response = await serverApi.fetchNoCors<{ body: string }>(
+              'http://localhost:8080/json'
+            )
+    
+            let tabs: Tab[] = []
+            if (response.success) tabs = JSON.parse(response.result.body) || []
+            // Find the tab the store is running on
+            const tab = tabs.find((t) =>
+              t.url.includes('https://store.steampowered.com')
+            )
+            if (tab?.url && tab.url !== oldUrl) {
+              const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1]
+              if (appId) {
+
+                console.log("APPID: " + appId)
+                globalStates.setAppId(appId)
+              }
+              else globalStates.setAppId("")
             }
-            else globalStates.setAppId("")
+            else {
+              globalStates.setAppId("")
+            }
+            getCurrentAppID()
           }
+          getCurrentAppID()
         }
-        else globalStates.setAppId("")
+        else {
+          globalStates.setAppId("")
+        }
       } catch (err) {
-        console.log(err)
+        globalStates.setAppId("")
       }
     })
     return unlisten
