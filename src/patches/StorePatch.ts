@@ -1,7 +1,7 @@
 import { ServerAPI, findModuleChild, sleep } from "decky-frontend-lib"
 import { globalStates } from "../utils/GlobalStates"
 
-// All of the below is mindleslly stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
+// most of the below is stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
 
 type Tab = {
     description: string
@@ -29,30 +29,6 @@ type Tab = {
       if (m[prop]?.m_history) return m[prop].m_history
     }
   })
-
-/**
- * Stolen from puppeteer util.js/ts
- * @internal
- */
-export const evaluationString = (
-    fun: string | (() => void),
-    ...args: unknown[]
-  ): string => {
-    if (typeof fun === 'string') {
-      if (args.length !== 0)
-        throw new Error('Cannot evaluate a string with arguments')
-      return fun
-    }
-    function serializeArgument(arg: unknown) {
-      if (Object.is(arg, undefined)) {
-        return 'undefined'
-      }
-      return JSON.stringify(arg)
-    }
-    return `(${fun})(${args.map(serializeArgument).join(',')})`
-  }
-
-
 
   export function patchStore(serverApi: ServerAPI): () => void {
     let oldUrl = "";
