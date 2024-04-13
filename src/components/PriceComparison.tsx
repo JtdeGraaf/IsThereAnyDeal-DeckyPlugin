@@ -50,8 +50,6 @@ const PriceComparison = () => {
 
   return (
     <div style={{
-      marginLeft: 8,
-      marginTop: 8,
       width: 236,
       background: "23262e",
       color: "ffffff",
@@ -67,12 +65,15 @@ const PriceComparison = () => {
       paddingBottom: 7,
       zIndex: 7002, // volume bar is 7000
       position: "fixed",
-      transform: `translateY(${appId ? 0 : -150}%)`,
+      bottom: 0, // position at the bottom of the screen
+      left: '50%', // position at the middle of the screen
+      transform: `translateX(-50%) translateY(${appId ? 0 : 100}%)`, // center the div and move it up or down based on appId
       transition: "transform 0.22s cubic-bezier(0, 0.73, 0.48, 1)",
     }}>
-      <Button>{appId}</Button>
+      {appId}
     </div> 
   )
+  
 }
 
 export default PriceComparison
