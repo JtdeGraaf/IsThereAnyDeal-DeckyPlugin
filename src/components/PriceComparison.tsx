@@ -1,7 +1,7 @@
-import { Button, findModuleChild } from 'decky-frontend-lib';
-import React, { useEffect, useState } from 'react'
-import { PhysicalButton, registerForInputEvent } from './ButtonRegistration';
-import { GlobalStates, globalStates } from '../utils/GlobalStates';
+import { findModuleChild } from 'decky-frontend-lib';
+import { useEffect, useState } from 'react'
+import { globalStates } from '../utils/GlobalStates';
+import { isThereAnyDealService } from '../service/IsThereAnyDealService';
 
 enum UIComposition {
   Hidden = 0,
@@ -31,6 +31,7 @@ const useUIComposition: (composition: UIComposition) => void = findModuleChild(
 
 const PriceComparison = () => {
   const [appId, setAppid] = useState()
+  const [label, setLabel] = useState("")
   useUIComposition(appId ? UIComposition.Notification : UIComposition.Hidden)
 
   useEffect(() => {
@@ -45,6 +46,13 @@ const PriceComparison = () => {
       globalStates.unsubscribe("PriceComparison");
     };
   }, []);
+
+  useEffect(() => {
+    if(appId){
+      isThereAnyDealService.getBestDealForSteamAppId( appId).then((id) => setLabel(id))
+    }
+
+  }, [appId])
 
   
 
@@ -70,7 +78,7 @@ const PriceComparison = () => {
       transform: `translateX(-50%) translateY(${appId ? 0 : 100}%)`, // center the div and move it up or down based on appId
       transition: "transform 0.22s cubic-bezier(0, 0.73, 0.48, 1)",
     }}>
-      {appId}
+      {label}
     </div> 
   )
   

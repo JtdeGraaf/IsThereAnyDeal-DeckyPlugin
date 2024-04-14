@@ -10,11 +10,13 @@ import PriceComparison from "./components/PriceComparison";
 import DeckyMenuOption from "./components/DeckyMenuOption";
 import { patchStore } from "./patches/StorePatch";
 import { GlobalStates } from "./utils/GlobalStates";
+import { IsThereAnyDealService } from "./service/IsThereAnyDealService";
 
 
 export default definePlugin((serverApi: ServerAPI) => {
   
   GlobalStates.init(serverApi)
+  IsThereAnyDealService.init(serverApi)
 
   serverApi.routerHook.addGlobalComponent("PriceComparison", PriceComparison )
 
