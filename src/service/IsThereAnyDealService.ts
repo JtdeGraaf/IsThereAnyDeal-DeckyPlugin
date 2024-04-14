@@ -79,7 +79,7 @@ export class IsThereAnyDealService {
   }
 
   getBestDealForSteamAppId = async (appId: string) => {
-    const API_KEY = "dcf54ab1effbba9f92c85eef25b4dd5e0610d65a"
+    const API_KEY = ""
 
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
