@@ -58,7 +58,7 @@ const PriceComparison = () => {
 
   return (
     <div style={{
-      width: 236,
+      width: 400,
       background: "23262e",
       color: "ffffff",
       boxShadow: "0px 0px 10px rgb(0 0 0 / 50%)" ,

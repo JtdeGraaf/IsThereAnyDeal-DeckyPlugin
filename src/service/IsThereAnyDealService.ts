@@ -79,7 +79,7 @@ export class IsThereAnyDealService {
   }
 
   getBestDealForSteamAppId = async (appId: string) => {
-    const API_KEY = ""
+    const API_KEY = "dcf54ab1effbba9f92c85eef25b4dd5e0610d65a"
 
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
@@ -114,9 +114,28 @@ export class IsThereAnyDealService {
     if(!serverResponseDeals.success) return "No deals found"
     const dealResponse: DealResponse[] = JSON.parse(serverResponseDeals.result.body)
     if(dealResponse.length <= 0  || dealResponse[0].deals.length <= 0 ) return "No deals found"
-    const price = dealResponse[0].deals[0].price
-    const store = dealResponse[0].deals[0].shop.name
-    return `${store}: ${price.currency} ${price.amount}`
+    
+    // Initialize variables to track the lowest price deal
+    let lowestPrice = Infinity;
+    let lowestPriceDeal = null;
+
+    // Iterate over all deals to find the one with the lowest price
+    for (const deal of dealResponse[0].deals) {
+        if (deal.price.amount < lowestPrice) {
+            lowestPrice = deal.price.amount;
+            lowestPriceDeal = deal;
+        }
+    }
+
+    // Check if a deal with the lowest price was found
+    if (!lowestPriceDeal) return "No deals found";
+
+    // Extract information from the lowest price deal
+    const price = lowestPriceDeal.price;
+    const store = lowestPriceDeal.shop.name;
+
+    // Return the result
+    return `Lowest price on ${store}: ${price.currency} ${price.amount}`;
   }
 
 
