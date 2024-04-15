@@ -49,9 +49,19 @@ const PriceComparison = () => {
 
   useEffect(() => {
     if(appId){
-      isThereAnyDealService.getBestDealForSteamAppId( appId).then((id) => setLabel(id))
-    }
+      isThereAnyDealService.getBestDealForSteamAppId( appId).then((deal) => {
+                  const price = deal.price;
+                  const store = deal.shop.name;
 
+                  // Return the result
+                  setLabel(`Lowest price on ${store}: ${price.currency} ${price.amount}`);
+                  
+
+      }).catch((error: Error) => {
+        setLabel(error.message)
+        console.log(error)
+      })
+    }
   }, [appId])
 
   

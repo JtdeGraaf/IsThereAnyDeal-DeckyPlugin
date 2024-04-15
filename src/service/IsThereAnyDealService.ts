@@ -1,45 +1,5 @@
 import { ServerAPI, ServerResponse } from "decky-frontend-lib";
-
-export interface Deal {
-    shop: {
-        id: number;
-        name: string;
-    };
-    price: {
-        amount: number;
-        amountInt: number;
-        currency: string;
-    };
-    regular: {
-        amount: number;
-        amountInt: number;
-        currency: string;
-    };
-    cut: number;
-    voucher: null | string;
-    storeLow: {
-        amount: number;
-        amountInt: number;
-        currency: string;
-    };
-    historyLow: {
-        amount: number;
-        amountInt: number;
-        currency: string;
-    };
-    flag: string;
-    drm: {
-        id: number;
-        name: string;
-    }[];
-    platforms: {
-        id: number;
-        name: string;
-    }[];
-    timestamp: string;
-    expiry: string | null;
-    url: string;
-}
+import { Deal } from "../models/Deal";
 
 interface DealResponse {
     id: string;
@@ -63,12 +23,11 @@ interface ServerResponseResult {
     body: string
 }
 
-
-
 export let isThereAnyDealService: IsThereAnyDealService
 
 export class IsThereAnyDealService {
   private readonly serverAPI: ServerAPI;
+  private readonly API_KEY = "19309722cd224ceb37de8ed6101ae8b6b495e85b"
 
   constructor(serverAPI: ServerAPI) {
     this.serverAPI = serverAPI;
@@ -78,28 +37,32 @@ export class IsThereAnyDealService {
     isThereAnyDealService = new IsThereAnyDealService(serverAPI);
   }
 
-  getBestDealForSteamAppId = async (appId: string) => {
-    const API_KEY = ""
-
+  private getIsThereAnyDealGameIdFromSteamAppId = async (appId:string) => {
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
                     await this.serverAPI.fetchNoCors<ServerResponseResult>(
-                        `https://api.isthereanydeal.com/games/lookup/v1?key=${API_KEY}&appid=${appId}`,
+                        `https://api.isthereanydeal.com/games/lookup/v1?key=${this.API_KEY}&appid=${appId}`,
                         {
                             method: 'GET',
                         }
                     );
     
     
-    if(!serverResponseGameId.success) return "No deals found"
+    if(!serverResponseGameId.success) throw new Error("Game does not exist on IsThereAnyDeal")
     const gameResponse: GameResponse = JSON.parse(serverResponseGameId.result.body) 
-    const isThereAnyDealGameId = gameResponse.game.id
+    return gameResponse.game.id
+  }
+
+
+  public getBestDealForSteamAppId = async (appId: string): Promise<Deal> => { 
+    
+    const isThereAnyDealGameId = await this.getIsThereAnyDealGameIdFromSteamAppId(appId)
     
     // Use the new gameId to fetch the best deal for it
 
     const serverResponseDeals: ServerResponse<ServerResponseResult> = 
         await this.serverAPI.fetchNoCors<ServerResponseResult>(
-        `https://api.isthereanydeal.com/games/prices/v2?key=${API_KEY}`,
+        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}`,
         {
             method: 'POST',
             headers: {
@@ -111,9 +74,9 @@ export class IsThereAnyDealService {
     );
     
 
-    if(!serverResponseDeals.success) return "No deals found"
+    if(!serverResponseDeals.success) throw new Error("IsThereAnyDeal is unavailable")
     const dealResponse: DealResponse[] = JSON.parse(serverResponseDeals.result.body)
-    if(dealResponse.length <= 0  || dealResponse[0].deals.length <= 0 ) return "No deals found"
+    if(dealResponse.length <= 0  || dealResponse[0].deals.length <= 0 ) throw new Error("No deals found")
     
     // Initialize variables to track the lowest price deal
     let lowestPrice = Infinity;
@@ -121,6 +84,7 @@ export class IsThereAnyDealService {
 
     // Iterate over all deals to find the one with the lowest price
     for (const deal of dealResponse[0].deals) {
+        console.log(deal)
         if (deal.price.amount < lowestPrice) {
             lowestPrice = deal.price.amount;
             lowestPriceDeal = deal;
@@ -128,14 +92,8 @@ export class IsThereAnyDealService {
     }
 
     // Check if a deal with the lowest price was found
-    if (!lowestPriceDeal) return "No deals found";
-
-    // Extract information from the lowest price deal
-    const price = lowestPriceDeal.price;
-    const store = lowestPriceDeal.shop.name;
-
-    // Return the result
-    return `Lowest price on ${store}: ${price.currency} ${price.amount}`;
+    if (!lowestPriceDeal) throw new Error("No deals found")
+    return lowestPriceDeal
   }
 
 
