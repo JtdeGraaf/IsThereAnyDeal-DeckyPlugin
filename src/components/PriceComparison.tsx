@@ -1,4 +1,4 @@
-import { findModuleChild } from 'decky-frontend-lib';
+import { findModuleChild, staticClasses } from 'decky-frontend-lib';
 import { useEffect, useState } from 'react'
 import { globalStates } from '../utils/GlobalStates';
 import { isThereAnyDealService } from '../service/IsThereAnyDealService';
@@ -40,11 +40,11 @@ const PriceComparison = () => {
   
 
   return (
-    <div style={{
+    <div
+    className={staticClasses.PanelSectionTitle}
+    
+    style={{
       width: 400,
-      background: "23262e",
-      color: "ffffff",
-      boxShadow: "0px 0px 10px rgb(0 0 0 / 50%)" ,
       display: "flex",
       flexDirection: "row",
       gap: 12,
@@ -53,7 +53,7 @@ const PriceComparison = () => {
       paddingLeft: 16,
       paddingRight: 16,
       paddingTop: 7,
-      paddingBottom: 7,
+      paddingBottom: 10,
       zIndex: 7002, // volume bar is 7000
       position: "fixed",
       bottom: 0, // position at the bottom of the screen
