@@ -1,17 +1,10 @@
 import { ServerAPI, ServerResponse } from "decky-frontend-lib";
 import { Deal } from "../models/Deal";
+import { Game } from "../models/Game";
 
 interface DealResponse {
     id: string;
     deals: Deal[];
-}
-
-interface Game {
-    id: string;
-    slug: string;
-    title: string;
-    type: null;
-    mature: boolean;
 }
 
 interface GameResponse {
@@ -37,7 +30,7 @@ export class IsThereAnyDealService {
     isThereAnyDealService = new IsThereAnyDealService(serverAPI);
   }
 
-  private getIsThereAnyDealGameIdFromSteamAppId = async (appId:string) => {
+  public getIsThereAnyDealGameFromSteamAppId = async (appId:string): Promise<Game> => {
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
                     await this.serverAPI.fetchNoCors<ServerResponseResult>(
@@ -50,14 +43,12 @@ export class IsThereAnyDealService {
     
     if(!serverResponseGameId.success) throw new Error("Game does not exist on IsThereAnyDeal")
     const gameResponse: GameResponse = JSON.parse(serverResponseGameId.result.body) 
-    return gameResponse.game.id
+    return gameResponse.game
   }
 
 
-  public getBestDealForSteamAppId = async (appId: string): Promise<Deal> => { 
+  public getBestDealForGameId = async (gameId: string): Promise<Deal> => { 
     
-    const isThereAnyDealGameId = await this.getIsThereAnyDealGameIdFromSteamAppId(appId)
-
     const country: string = await SteamClient.User.GetIPCountry()
     
     // Use the new gameId to fetch the best deal for it
@@ -71,7 +62,7 @@ export class IsThereAnyDealService {
                 'Content-Type': 'application/json',
             },
             //@ts-ignore
-            json: [isThereAnyDealGameId],
+            json: [gameId],
         }
     );
     

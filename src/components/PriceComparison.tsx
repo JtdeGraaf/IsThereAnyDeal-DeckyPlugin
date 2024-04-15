@@ -1,10 +1,12 @@
-import { findModuleChild, staticClasses } from 'decky-frontend-lib';
+import { Navigation, findModuleChild, staticClasses } from 'decky-frontend-lib';
 import { useEffect, useState } from 'react'
 import { globalStates } from '../utils/GlobalStates';
 import { isThereAnyDealService } from '../service/IsThereAnyDealService';
+import { Game } from '../models/Game';
 
 const PriceComparison = () => {
   const [appId, setAppid] = useState()
+  const [game, setGame] = useState<Game>()
   const [label, setLabel] = useState("")
 
   useEffect(() => {
@@ -22,17 +24,21 @@ const PriceComparison = () => {
 
   useEffect(() => {
     if(appId){
-      isThereAnyDealService.getBestDealForSteamAppId( appId).then((deal) => {
-                  const price = deal.price;
-                  const store = deal.shop.name;
+      isThereAnyDealService.getIsThereAnyDealGameFromSteamAppId(appId).then((game) => {
+        isThereAnyDealService.getBestDealForGameId(game.id).then((deal) => {
+          const price = deal.price;
+          const store = deal.shop.name;
 
-                  // Return the result
-                  setLabel(`Lowest price on ${store}: ${price.currency} ${price.amount}`);
-                  
-
-      }).catch((error: Error) => {
+          // Return the result
+          setLabel(`Lowest price on ${store}: ${price.currency} ${price.amount}`);
+        }).catch((error: Error) => {
+          setLabel(error.message)
+          console.log(error)
+        })
+        setGame(game)
+      })
+      .catch((error: Error) => {
         setLabel(error.message)
-        console.log(error)
       })
     }
   }, [appId])
@@ -42,6 +48,12 @@ const PriceComparison = () => {
   return (
     <div
     className={staticClasses.PanelSectionTitle}
+
+    onClick={async () => {
+      game && Navigation.NavigateToExternalWeb(
+        `https://isthereanydeal.com/game/${game.slug}/info/`
+      )
+    }}
     
     style={{
       width: 400,
