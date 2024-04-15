@@ -27,7 +27,7 @@ export let isThereAnyDealService: IsThereAnyDealService
 
 export class IsThereAnyDealService {
   private readonly serverAPI: ServerAPI;
-  private readonly API_KEY = "19309722cd224ceb37de8ed6101ae8b6b495e85b"
+  private readonly API_KEY = ""
 
   constructor(serverAPI: ServerAPI) {
     this.serverAPI = serverAPI;
