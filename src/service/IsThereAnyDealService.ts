@@ -57,12 +57,14 @@ export class IsThereAnyDealService {
   public getBestDealForSteamAppId = async (appId: string): Promise<Deal> => { 
     
     const isThereAnyDealGameId = await this.getIsThereAnyDealGameIdFromSteamAppId(appId)
+
+    const country: string = await SteamClient.User.GetIPCountry()
     
     // Use the new gameId to fetch the best deal for it
 
     const serverResponseDeals: ServerResponse<ServerResponseResult> = 
         await this.serverAPI.fetchNoCors<ServerResponseResult>(
-        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}`,
+        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}`,
         {
             method: 'POST',
             headers: {
