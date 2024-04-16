@@ -55,7 +55,7 @@ export class IsThereAnyDealService {
 
     const serverResponseDeals: ServerResponse<ServerResponseResult> = 
         await this.serverAPI.fetchNoCors<ServerResponseResult>(
-        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}`,
+        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}&nondeals=true`,
         {
             method: 'POST',
             headers: {
@@ -74,10 +74,15 @@ export class IsThereAnyDealService {
     // Initialize variables to track the lowest price deal
     let lowestPrice = Infinity;
     let lowestPriceDeal = null;
+    let steamDeal = null;
+    const STEAM_SHOP_ID = 61
 
     // Iterate over all deals to find the one with the lowest price
     for (const deal of dealResponse[0].deals) {
-        console.log(deal)
+        
+        if(deal.shop.id === STEAM_SHOP_ID){
+            steamDeal = deal
+        }
         if (deal.price.amount < lowestPrice) {
             lowestPrice = deal.price.amount;
             lowestPriceDeal = deal;
@@ -86,6 +91,9 @@ export class IsThereAnyDealService {
 
     // Check if a deal with the lowest price was found
     if (!lowestPriceDeal) throw new Error("No deals found")
+    
+    // Check if the lowestPriceDeal is the same price as on Steam if so return the steamdeal
+    if(steamDeal && steamDeal.price.amount === lowestPriceDeal.price.amount) return steamDeal
     return lowestPriceDeal
   }
 
