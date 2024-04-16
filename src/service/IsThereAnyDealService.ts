@@ -1,6 +1,7 @@
 import { ServerAPI, ServerResponse } from "decky-frontend-lib";
 import { Deal } from "../models/Deal";
 import { Game } from "../models/Game";
+import { SETTINGS, Setting } from "../utils/Settings";
 
 interface DealResponse {
     id: string;
@@ -50,12 +51,13 @@ export class IsThereAnyDealService {
   public getBestDealForGameId = async (gameId: string): Promise<Deal> => { 
     
     const country: string = await SteamClient.User.GetIPCountry()
+    const allowVouchersInPrices = await SETTINGS.load(Setting.ALLOW_VOUCHERS_IN_PRICES)
     
     // Use the new gameId to fetch the best deal for it
 
     const serverResponseDeals: ServerResponse<ServerResponseResult> = 
         await this.serverAPI.fetchNoCors<ServerResponseResult>(
-        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}&nondeals=true`,
+        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}&nondeals=true&vouchers=${allowVouchersInPrices}`,
         {
             method: 'POST',
             headers: {
