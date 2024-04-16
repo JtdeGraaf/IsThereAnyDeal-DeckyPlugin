@@ -8,6 +8,7 @@ const PriceComparison = () => {
   const [appId, setAppid] = useState()
   const [game, setGame] = useState<Game>()
   const [label, setLabel] = useState("")
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     function loadAppId() {
@@ -31,16 +32,19 @@ const PriceComparison = () => {
 
           // Return the result
           setLabel(`Lowest price on ${store}: ${price.currency} ${price.amount}`);
+          setIsVisible(true)
         }).catch((error: Error) => {
           setLabel(error.message)
-          console.log(error)
+          setIsVisible(true)
         })
         setGame(game)
       })
       .catch((error: Error) => {
         setLabel(error.message)
+        setIsVisible(true)
       })
     }
+    else setIsVisible(false)
   }, [appId])
 
   
@@ -50,9 +54,11 @@ const PriceComparison = () => {
     className={staticClasses.PanelSectionTitle}
 
     onClick={async () => {
+      const oldAppId = appId
       game && Navigation.NavigateToExternalWeb(
         `https://isthereanydeal.com/game/${game.slug}/info/`
       )
+      setAppid(oldAppId)
     }}
     
     style={{
@@ -70,7 +76,7 @@ const PriceComparison = () => {
       position: "fixed",
       bottom: 0, // position at the bottom of the screen
       left: '50%', // position at the middle of the screen
-      transform: `translateX(-50%) translateY(${appId ? 0 : 100}%)`, // center the div and move it up or down based on appId
+      transform: `translateX(-50%) translateY(${isVisible ? 0 : 100}%)`, // center the div and move it up or down based on appId
       transition: "transform 0.22s cubic-bezier(0, 0.73, 0.48, 1)",
     }}>
       {label}
