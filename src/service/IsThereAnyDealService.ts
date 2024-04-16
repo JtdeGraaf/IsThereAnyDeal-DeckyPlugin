@@ -50,7 +50,7 @@ export class IsThereAnyDealService {
 
   public getBestDealForGameId = async (gameId: string): Promise<Deal> => { 
     
-    const country: string = await SteamClient.User.GetIPCountry()
+    const country: string = await SETTINGS.load(Setting.COUNTRY)
     const allowVouchersInPrices = await SETTINGS.load(Setting.ALLOW_VOUCHERS_IN_PRICES)
     
     // Use the new gameId to fetch the best deal for it
