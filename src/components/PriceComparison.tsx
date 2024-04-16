@@ -1,4 +1,4 @@
-import { Navigation, findModuleChild, staticClasses } from 'decky-frontend-lib';
+import { Navigation, staticClasses } from 'decky-frontend-lib';
 import { useEffect, useState } from 'react'
 import { isThereAnyDealService } from '../service/IsThereAnyDealService';
 import { Game } from '../models/Game';

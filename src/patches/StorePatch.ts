@@ -1,4 +1,4 @@
-import { ServerAPI, findModuleChild, sleep } from "decky-frontend-lib"
+import { ServerAPI, findModuleChild } from "decky-frontend-lib"
 import { CACHE } from "../utils/Cache"
 
 // most of the below is stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
