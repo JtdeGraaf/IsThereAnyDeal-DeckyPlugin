@@ -3,7 +3,7 @@ import {
   ServerAPI,
   staticClasses,
 } from "decky-frontend-lib";
-import { FaShip } from "react-icons/fa";
+import { FaDollarSign } from "react-icons/fa";
 
 
 import PriceComparison from "./components/PriceComparison";
@@ -26,9 +26,9 @@ export default definePlugin((serverApi: ServerAPI) => {
 
 
   return {
-    title: <div className={staticClasses.Title}>IsThereAnyDeal</div>,
+    title: <div className={staticClasses.Title}>IsThereAnyDeal for Deck</div>,
     content: <DeckyMenuOption serverAPI={serverApi}/>,
-    icon: <FaShip />,
+    icon: <FaDollarSign />,
     onDismount() {
       serverApi.routerHook.removeGlobalComponent("PriceComparison")
       storePatch
