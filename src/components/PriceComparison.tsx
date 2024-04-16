@@ -1,8 +1,8 @@
 import { Navigation, findModuleChild, staticClasses } from 'decky-frontend-lib';
 import { useEffect, useState } from 'react'
-import { globalStates } from '../utils/GlobalStates';
 import { isThereAnyDealService } from '../service/IsThereAnyDealService';
 import { Game } from '../models/Game';
+import { CACHE } from '../utils/Cache';
 
 const PriceComparison = () => {
   const [appId, setAppid] = useState()
@@ -12,14 +12,14 @@ const PriceComparison = () => {
 
   useEffect(() => {
     function loadAppId() {
-      globalStates.loadAppId().then(setAppid);
+      CACHE.loadValue(CACHE.APP_ID_KEY).then(setAppid);
     }
 
     loadAppId();
-    globalStates.subscribe("PriceComparison", loadAppId);
+    CACHE.subscribe("PriceComparison", loadAppId);
 
     return () => {
-      globalStates.unsubscribe("PriceComparison");
+      CACHE.unsubscribe("PriceComparison");
     };
   }, []);
 

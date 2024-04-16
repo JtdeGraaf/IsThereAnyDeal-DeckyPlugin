@@ -1,5 +1,5 @@
 import { ServerAPI, findModuleChild, sleep } from "decky-frontend-lib"
-import { globalStates } from "../utils/GlobalStates"
+import { CACHE } from "../utils/Cache"
 
 // most of the below is stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
 
@@ -37,10 +37,10 @@ type Tab = {
         if (info.pathname === '/steamweb') {
           getCurrentAppID();
         } else {
-          globalStates.setAppId("");
+          CACHE.setValue(CACHE.APP_ID_KEY, "");
         }
       } catch (err) {
-        globalStates.setAppId("");
+        CACHE.setValue(CACHE.APP_ID_KEY, "");
       }
     });
 
@@ -59,9 +59,9 @@ type Tab = {
         oldUrl = tab.url;
         const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1];
         if (appId) {
-          globalStates.setAppId(appId);
+          CACHE.setValue(CACHE.APP_ID_KEY, appId);
         } else {
-          globalStates.setAppId("");
+          CACHE.setValue(CACHE.APP_ID_KEY, "");
         }
       }
 
