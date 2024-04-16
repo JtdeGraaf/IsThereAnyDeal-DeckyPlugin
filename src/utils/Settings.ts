@@ -3,6 +3,7 @@ import { CACHE } from "./Cache";
 
 export enum Setting {
   ALLOW_VOUCHERS_IN_PRICES = "allowVouchersInPrices",
+  COUNTRY = "country"
 
 }
 
@@ -21,6 +22,7 @@ export class Settings {
 
   defaults: Record<Setting, any> = {
     allowVouchersInPrices: false,
+    country: "US"  //await SteamClient.User.GetIPCountry()
   };
 
   async load(key: Setting) {
