@@ -51,13 +51,13 @@ type Tab = {
 
       let tabs: Tab[] = [];
       if (response.success) tabs = JSON.parse(response.result.body) || [];
-      const tab = tabs.find((t) =>
-        t.url.includes('https://store.steampowered.com')
+      const storeTab = tabs.find((tab) =>
+        tab.url.includes('https://store.steampowered.com')
       );
 
-      if (tab?.url && tab.url !== oldUrl) {
-        oldUrl = tab.url;
-        const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1];
+      if (storeTab?.url && storeTab.url !== oldUrl) {
+        oldUrl = storeTab.url;
+        const appId = storeTab.url.match(/\/app\/([\d]+)\/?/)?.[1];
         if (appId) {
           CACHE.setValue(CACHE.APP_ID_KEY, appId);
           // As long as the steam store is open do refreshes
@@ -69,7 +69,7 @@ type Tab = {
         }
       }
       // If tabs do not contain steamstore
-      if(!tab) CACHE.setValue(CACHE.APP_ID_KEY, "")
+      if(!storeTab) CACHE.setValue(CACHE.APP_ID_KEY, "")
       else setTimeout(() => getCurrentAppID(), 1500)
     };
 
