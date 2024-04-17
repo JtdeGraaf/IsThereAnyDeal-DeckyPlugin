@@ -11,6 +11,10 @@ export let SETTINGS: Settings
 
 export class Settings {
   private readonly serverAPI: ServerAPI;
+  public defaults: Record<Setting, any> = {
+    allowVouchersInPrices: false,
+    country: "US"
+  };
 
   constructor(serverAPI: ServerAPI) {
     this.serverAPI = serverAPI;
@@ -20,11 +24,6 @@ export class Settings {
     SETTINGS = new Settings(serverAPI)
   }
 
-  defaults: Record<Setting, any> = {
-    allowVouchersInPrices: false,
-    country: "US"  //await SteamClient.User.GetIPCountry()
-  };
-
   async load(key: Setting) {
     const cacheValue = await CACHE.loadValue(key)
     if (cacheValue) {
@@ -33,14 +32,18 @@ export class Settings {
 
     const response = await this.serverAPI.callPluginMethod("settings_load", {
       key: key,
-      defaults: this.defaults[key],
     });
 
     if (response.success) {
-        CACHE.setValue(key, response)
+        CACHE.setValue(key, response.result)
         return response.result;
     } else {
-      return this.defaults[key];
+        if(key === Setting.COUNTRY){
+            const actualDefaultCountry = await SteamClient.User.GetIPCountry()
+            this.save(Setting.COUNTRY, actualDefaultCountry)
+            return actualDefaultCountry
+        }
+        return this.defaults[key];
     }
   }
 

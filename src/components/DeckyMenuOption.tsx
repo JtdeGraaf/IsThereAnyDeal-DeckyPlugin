@@ -2,6 +2,7 @@ import { DropdownItem, PanelSection, PanelSectionRow, ServerAPI, ToggleField } f
 import { useEffect, useState } from 'react'
 import { SETTINGS, Setting } from '../utils/Settings';
 import { countries } from '../models/Country';
+import { CACHE } from '../utils/Cache';
 
 interface Props {
     serverAPI: ServerAPI

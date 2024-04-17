@@ -32,7 +32,6 @@ export class Cache {
 
   async loadValue(key: string) {
     if (this.cache[key]) {
-      console.log("LOAD RESULT: " + this.cache[key])
       return this.cache[key];
     }
   }
