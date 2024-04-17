@@ -54,20 +54,21 @@ const PriceComparison = () => {
     className={staticClasses.PanelSectionTitle}
 
     onClick={async () => {
-      const oldAppId = appId
+      //const oldAppId = appId
       game && Navigation.NavigateToExternalWeb(
         `https://isthereanydeal.com/game/${game.slug}/info/`
       )
-      setAppid(oldAppId)
+      //CACHE.setValue(CACHE.APP_ID_KEY, oldAppId)
     }}
     
     style={{
-      width: 400,
+      width: 420,
       display: "flex",
       flexDirection: "row",
       gap: 12,
       alignItems: "center",
-      flexWrap: "nowrap",
+      justifyContent: "center",
+      flexWrap: "wrap",
       paddingLeft: 16,
       paddingRight: 16,
       paddingTop: 7,

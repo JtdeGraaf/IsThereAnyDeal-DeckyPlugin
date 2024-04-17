@@ -21,7 +21,8 @@ export let isThereAnyDealService: IsThereAnyDealService
 
 export class IsThereAnyDealService {
   private readonly serverAPI: ServerAPI;
-  private readonly API_KEY = ""
+  // I know this basically does nothing, but it makes me feel better
+  private readonly notWhatYouThinkItIs = "T1dabE4yUTRObVUxWldWaE9HUTJaVFF5TkRCbFpXVmpaR1UzWVdRME0yVTRNbVF3Wldaa01nPT0="
 
   constructor(serverAPI: ServerAPI) {
     this.serverAPI = serverAPI;
@@ -35,7 +36,7 @@ export class IsThereAnyDealService {
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
                     await this.serverAPI.fetchNoCors<ServerResponseResult>(
-                        `https://api.isthereanydeal.com/games/lookup/v1?key=${this.API_KEY}&appid=${appId}`,
+                        `https://api.isthereanydeal.com/games/lookup/v1?key=${atob(atob(this.notWhatYouThinkItIs))}&appid=${appId}`,
                         {
                             method: 'GET',
                         }
@@ -57,7 +58,7 @@ export class IsThereAnyDealService {
 
     const serverResponseDeals: ServerResponse<ServerResponseResult> = 
         await this.serverAPI.fetchNoCors<ServerResponseResult>(
-        `https://api.isthereanydeal.com/games/prices/v2?key=${this.API_KEY}&country=${country}&nondeals=true&vouchers=${allowVouchersInPrices}`,
+        `https://api.isthereanydeal.com/games/prices/v2?key=${atob(atob(this.notWhatYouThinkItIs))}&country=${country}&nondeals=true&vouchers=${allowVouchersInPrices}`,
         {
             method: 'POST',
             headers: {

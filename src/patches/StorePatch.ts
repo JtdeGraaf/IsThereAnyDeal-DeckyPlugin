@@ -60,12 +60,17 @@ type Tab = {
         const appId = tab.url.match(/\/app\/([\d]+)\/?/)?.[1];
         if (appId) {
           CACHE.setValue(CACHE.APP_ID_KEY, appId);
+          // As long as the steam store is open do refreshes
+          setTimeout(() => getCurrentAppID(), 1500)
         } else {
           CACHE.setValue(CACHE.APP_ID_KEY, "");
+          // As long as the steam store is open do refreshes
+          setTimeout(() => getCurrentAppID(), 1500)
         }
       }
-
-      setTimeout(() => getCurrentAppID(), 1500)
+      // If tabs do not contain steamstore
+      if(!tab) CACHE.setValue(CACHE.APP_ID_KEY, "")
+      else setTimeout(() => getCurrentAppID(), 1500)
     };
 
     return unlisten;
