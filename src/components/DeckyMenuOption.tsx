@@ -1,13 +1,9 @@
-import { DropdownItem, PanelSection, PanelSectionRow, ServerAPI, ToggleField } from 'decky-frontend-lib'
+import { DropdownItem, PanelSection, PanelSectionRow, ToggleField } from 'decky-frontend-lib'
 import { useEffect, useState } from 'react'
 import { SETTINGS, Setting } from '../utils/Settings';
 import { countries } from '../models/Country';
 
-interface Props {
-    serverAPI: ServerAPI
-}
-
-const DeckyMenuOption = ({serverAPI}: Props) => {
+const DeckyMenuOption = () => {
   const [allowVouchersInPrices, setAllowVouchersInPrices] = useState(SETTINGS.defaults.allowVouchersInPrices)
   const [country, setCountry] = useState(SETTINGS.defaults.country)
 

@@ -27,8 +27,8 @@ export default definePlugin((serverApi: ServerAPI) => {
 
   return {
     title: <div className={staticClasses.Title}>IsThereAnyDeal for Deck</div>,
-    content: <DeckyMenuOption serverAPI={serverApi}/>,
-    icon: <FaDollarSign />,
+    content: <DeckyMenuOption/>,
+    icon: <FaDollarSign/>,
     onDismount() {
       serverApi.routerHook.removeGlobalComponent("PriceComparison")
       storePatch
