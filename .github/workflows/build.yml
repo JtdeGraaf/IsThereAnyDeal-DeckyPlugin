@@ -35,7 +35,7 @@ jobs:
                   cp plugin.json ./dist/
                   cp package.json ./dist/
                   cp main.py ./dist/
-                  cp LICENCE ./dist/
+                  cp LICENSE ./dist/
                   cp README.md ./dist/
                   mkdir ./dist/dist
                   mv ./dist/index.js ./dist/dist/
