@@ -1,10 +1,10 @@
 {
-  "name": "IsThereAnyDeal",
+  "name": "IsThereAnyDeal for Deck",
   "author": "JtdeGraaf",
-  "flags": ["debug", "_root"],
+  "flags": [],
   "publish": {
-    "tags": ["template", "root"],
-    "description": "IsThereAnyDeal for Deck",
+    "tags": ["IsThereAnyDeal", "GameDeals"],
+    "description": "Shows IsThereAnyDeal data on a game's store page",
     "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
   }
 }
