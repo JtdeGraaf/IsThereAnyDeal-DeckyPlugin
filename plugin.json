@@ -5,6 +5,6 @@
   "publish": {
     "tags": ["IsThereAnyDeal", "GameDeals"],
     "description": "Shows IsThereAnyDeal data on a game's store page",
-    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+    "image": "https://github.com/JtdeGraaf/IsThereAnyDeal-DeckyPlugin/blob/0f771f48c10f7238d32e5b4af78c24f459e78805/assets/publish-image.png"
   }
 }
