@@ -54,6 +54,15 @@ type Tab = {
       const storeTab = tabs.find((tab) =>
         tab.url.includes('https://store.steampowered.com')
       );
+      const itadTab = tabs.find((tab) =>
+        tab.url.includes('https://isthereanydeal.com')
+      );
+
+      if(itadTab){
+        oldUrl = "" // This is necessary so that the appID will be set again after closing the external browser
+        setTimeout(() => getCurrentAppID(), 1500)
+        return      
+      }
 
       if (storeTab?.url && storeTab.url !== oldUrl) {
         oldUrl = storeTab.url;
@@ -69,8 +78,12 @@ type Tab = {
         }
       }
       // If tabs do not contain steamstore
-      if(!storeTab) CACHE.setValue(CACHE.APP_ID_KEY, "")
-      else setTimeout(() => getCurrentAppID(), 1500)
+      if(!storeTab) {
+        CACHE.setValue(CACHE.APP_ID_KEY, "")
+      }
+      else {
+        setTimeout(() => getCurrentAppID(), 1500)
+      }
     };
 
     return unlisten;
