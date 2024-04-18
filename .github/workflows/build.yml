@@ -21,21 +21,26 @@ jobs:
               with:
                   node-version: '18.3'
 
+            - name: Install pnpm
+              run: npm install -g pnpm
+
             - name: Install Dependencies
-              run: npm install
+              run: pnpm install
 
             - name: build
-              run: npm run build
+              run: pnpm run build
 
             - name: copy files into build
               run: |
                   cp plugin.json ./dist/
+                  cp package.json ./dist/
                   mkdir ./dist/dist
                   mv ./dist/index.js ./dist/dist/
+
             - name: Upload package
               uses: actions/upload-artifact@v2
               with:
-                  name: IsThereAnyDeal-for-Deck
+                  name: isthereanydeal-for-deck
                   path: |
                       ./dist/*
     release:
@@ -47,15 +52,15 @@ jobs:
 
             - uses: actions/download-artifact@v3
               with:
-                  name: IsThereAnyDeal-for-Deck
-                  path: IsThereAnyDeal-for-Deck
+                  name: isthereanydeal-for-deck
+                  path: isthereanydeal-for-deck
 
             - name: zip/tar release
               run: |
-                  zip -r IsThereAnyDeal-for-Deck.zip IsThereAnyDeal-for-Deck/*
-                  tar -czvf IsThereAnyDeal-for-Deck.tar.gz IsThereAnyDeal-for-Deck
+                  zip -r isthereanydeal-for-deck.zip isthereanydeal-for-deck/*
+                  tar -czvf isthereanydeal-for-deck.tar.gz isthereanydeal-for-deck
+
             - name: Create a release
               uses: ncipollo/release-action@v1
               with:
-                  artifacts: 'IsThereAnyDeal-for-Deck.zip,IsThereAnyDeal-for-Deck.tar.gz'
-                  allowUpdates: true
+                  artifacts: 'hltb-for-deck.zip,hltb-for-deck.tar.gz'
