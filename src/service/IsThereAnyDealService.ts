@@ -2,6 +2,7 @@ import { ServerAPI, ServerResponse } from "decky-frontend-lib";
 import { Deal } from "../models/Deal";
 import { Game } from "../models/Game";
 import { SETTINGS, Setting } from "../utils/Settings";
+import { CACHE } from "../utils/Cache";
 
 interface DealResponse {
     id: string;
@@ -33,6 +34,12 @@ export class IsThereAnyDealService {
   }
 
   public getIsThereAnyDealGameFromSteamAppId = async (appId:string): Promise<Game> => {
+    const gameCacheKeyBase = "steamAppIdToItadGame-"
+
+    // Check if game exists in cache if so return it
+    const game = await CACHE.loadValue(gameCacheKeyBase + appId)
+    if(game) return game;
+
     // Get the isThereAnyDeal gameID from a steam appId
     const serverResponseGameId: ServerResponse<ServerResponseResult> =
                     await this.serverAPI.fetchNoCors<ServerResponseResult>(
@@ -45,6 +52,10 @@ export class IsThereAnyDealService {
     
     if(!serverResponseGameId.success) throw new Error("Game does not exist on IsThereAnyDeal")
     const gameResponse: GameResponse = JSON.parse(serverResponseGameId.result.body) 
+
+    // Save game to cache to minimize API calls
+    CACHE.setValue(gameCacheKeyBase + appId, gameResponse.game)
+
     return gameResponse.game
   }
 
