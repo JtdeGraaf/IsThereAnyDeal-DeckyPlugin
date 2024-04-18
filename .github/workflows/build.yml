@@ -66,4 +66,4 @@ jobs:
             - name: Create a release
               uses: ncipollo/release-action@v1
               with:
-                  artifacts: 'hltb-for-deck.zip,hltb-for-deck.tar.gz'
+                  artifacts: 'isthereanydeal-for-deck.zip,isthereanydeal-for-deck.tar.gz'
