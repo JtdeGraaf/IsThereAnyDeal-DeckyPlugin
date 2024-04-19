@@ -1,4 +1,5 @@
 # IsThereAnyDeal Decky Plugin
+![Decky Loader](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fplugins.deckbrew.xyz%2Fplugins&query=%24%5B%3F(%40.id%20%3D%3D%20'81')%5D.downloads&suffix=%20installs&label=decky&color=3ea6a3)
 
 This plugin shows IsThereAnyDeal data on the Steam Deck's game store pages.
 
