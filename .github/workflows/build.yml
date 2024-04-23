@@ -45,7 +45,7 @@ jobs:
               with:
                   name: isthereanydeal-for-deck
                   path: |
-                      ./tmp/output/*
+                      /tmp/output
     release:
         needs: build
         if: startsWith(github.ref, 'refs/tags/v')
