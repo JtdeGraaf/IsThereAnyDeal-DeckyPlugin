@@ -31,6 +31,7 @@ export class Settings {
   async load(key: Setting) {
     const cacheValue = await CACHE.loadValue(key)
     if (cacheValue) {
+      console.log("CACHE KEY: " + key + ", value: " + cacheValue)
       return cacheValue
     }
 
@@ -39,8 +40,8 @@ export class Settings {
       defaults: (key === Setting.COUNTRY) ? "" : this.defaults[key]
       
     }).then(async (response) => {
-      if (response.success && response.result) {
-        CACHE.setValue(key, response.result)
+      if (response.success && response.result != undefined) {
+        this.save(key, response.result)
         return response.result;
       }
       else if(key === Setting.COUNTRY){
