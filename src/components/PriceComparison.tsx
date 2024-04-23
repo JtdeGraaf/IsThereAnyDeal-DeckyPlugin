@@ -70,7 +70,6 @@ const PriceComparison = () => {
       width: 420,
       display: "flex",
       flexDirection: "row",
-      gap: 12,
       alignItems: "center",
       justifyContent: "center",
       flexWrap: "wrap",

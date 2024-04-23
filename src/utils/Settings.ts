@@ -35,7 +35,7 @@ export class Settings {
       return cacheValue
     }
 
-    this.serverAPI.callPluginMethod("settings_load", {
+    return this.serverAPI.callPluginMethod("settings_load", {
       key: key,
       defaults: (key === Setting.COUNTRY) ? "" : this.defaults[key]
       
