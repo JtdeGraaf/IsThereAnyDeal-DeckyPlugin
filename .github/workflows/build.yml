@@ -40,9 +40,6 @@ jobs:
 
                 decky plugin build -b -o /tmp/output -s directory $GITHUB_WORKSPACE
                 
-                sudo chown -R $(whoami) isthereanydeal-for-deck
-
-
             - name: Upload package
               uses: actions/upload-artifact@v2
               with:
