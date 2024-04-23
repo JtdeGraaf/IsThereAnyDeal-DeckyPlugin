@@ -16,12 +16,13 @@ const PriceComparison = () => {
   useEffect(() => {
     function loadAppId() {
       CACHE.loadValue(CACHE.APP_ID_KEY).then(setAppid);
+      SETTINGS.load(Setting.PADDING_BOTTOM).then(setPaddingBottom)
+      SETTINGS.load(Setting.FONTSIZE).then(setFontSize)
     }
     loadAppId();
     CACHE.subscribe("PriceComparison", loadAppId);
 
-    SETTINGS.load(Setting.PADDING_BOTTOM).then(setPaddingBottom)
-    SETTINGS.load(Setting.FONTSIZE).then(setFontSize)
+
 
 
     return () => {
