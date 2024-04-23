@@ -27,25 +27,28 @@ jobs:
             - name: Install Dependencies
               run: pnpm install
 
-            - name: build
-              run: pnpm run build
-
-            - name: copy files into build
+            - name: Download Decky CLI
               run: |
-                  cp plugin.json ./dist/
-                  cp package.json ./dist/
-                  cp main.py ./dist/
-                  cp LICENSE ./dist/
-                  cp README.md ./dist/
-                  mkdir ./dist/dist
-                  mv ./dist/index.js ./dist/dist/
+                mkdir /tmp/decky-cli
+                curl -L -o /tmp/decky-cli/decky "https://github.com/SteamDeckHomebrew/cli/releases/download/0.0.2/decky-linux-x86_64"
+                chmod +x /tmp/decky-cli/decky
+
+                echo "/tmp/decky-cli" >> $GITHUB_PATH
+            
+            - name: Build plugin
+              run: |
+
+                decky plugin build -b -o /tmp/output -s directory isthereanydeal-for-deck
+                
+                sudo chown -R $(whoami) isthereanydeal-for-deck
+
 
             - name: Upload package
               uses: actions/upload-artifact@v2
               with:
                   name: isthereanydeal-for-deck
                   path: |
-                      ./dist/*
+                      ./tmp/output/isthereanydeal-for-deck/*
     release:
         needs: build
         if: startsWith(github.ref, 'refs/tags/v')
