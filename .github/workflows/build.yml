@@ -38,9 +38,7 @@ jobs:
             - name: Build plugin
               run: |
 
-                cd $GITHUB_WORKSPACE
-
-                decky plugin build -b -o /tmp/output -s directory isthereanydeal-for-deck
+                decky plugin build -b -o /tmp/output -s directory --manifest plugin.json
                 
                 sudo chown -R $(whoami) isthereanydeal-for-deck
 
