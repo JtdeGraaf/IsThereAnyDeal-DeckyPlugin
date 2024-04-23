@@ -37,8 +37,11 @@ export class Cache {
   }
 
   async setValue(key: string, value: any) {
-    this.cache[key] = value;
-    this.notifySubscribers();
+    const oldValue = await this.loadValue(key)
+    if(oldValue !== value){
+      this.cache[key] = value;
+      this.notifySubscribers();
+    }
   }
 
 }
