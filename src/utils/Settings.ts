@@ -1,9 +1,11 @@
-import { ServerAPI } from "decky-frontend-lib";
+import { ServerAPI, staticClasses } from "decky-frontend-lib";
 import { CACHE } from "./Cache";
 
 export enum Setting {
   ALLOW_VOUCHERS_IN_PRICES = "allowVouchersInPrices",
-  COUNTRY = "country"
+  COUNTRY = "country",
+  FONTSIZE = "fontSize",
+  PADDING_BOTTOM = "paddingBottom",
 
 }
 
@@ -13,7 +15,9 @@ export class Settings {
   private readonly serverAPI: ServerAPI;
   public defaults: Record<Setting, any> = {
     allowVouchersInPrices: false,
-    country: "US"
+    country: "US",
+    fontSize: 16,
+    paddingBottom: 10,
   };
 
   constructor(serverAPI: ServerAPI) {

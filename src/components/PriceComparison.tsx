@@ -3,20 +3,26 @@ import { useEffect, useState } from 'react'
 import { isThereAnyDealService } from '../service/IsThereAnyDealService';
 import { Game } from '../models/Game';
 import { CACHE } from '../utils/Cache';
+import { SETTINGS, Setting } from '../utils/Settings';
 
 const PriceComparison = () => {
   const [appId, setAppid] = useState()
   const [game, setGame] = useState<Game>()
   const [label, setLabel] = useState("")
   const [isVisible, setIsVisible] = useState(false)
+  const [paddingBottom, setPaddingBottom] = useState(SETTINGS.defaults.paddingBottom)
+  const [fontSize, setFontSize] = useState(SETTINGS.defaults.fontSize)
 
   useEffect(() => {
     function loadAppId() {
       CACHE.loadValue(CACHE.APP_ID_KEY).then(setAppid);
     }
-
     loadAppId();
     CACHE.subscribe("PriceComparison", loadAppId);
+
+    SETTINGS.load(Setting.PADDING_BOTTOM).then(setPaddingBottom)
+    SETTINGS.load(Setting.FONTSIZE).then(setFontSize)
+
 
     return () => {
       CACHE.unsubscribe("PriceComparison");
@@ -54,11 +60,9 @@ const PriceComparison = () => {
     className={staticClasses.PanelSectionTitle}
 
     onClick={async () => {
-      //const oldAppId = appId
       game && Navigation.NavigateToExternalWeb(
         `https://isthereanydeal.com/game/${game.slug}/info/`
       )
-      //CACHE.setValue(CACHE.APP_ID_KEY, oldAppId)
     }}
     
     style={{
@@ -72,7 +76,8 @@ const PriceComparison = () => {
       paddingLeft: 16,
       paddingRight: 16,
       paddingTop: 7,
-      paddingBottom: 10,
+      paddingBottom: paddingBottom,
+      fontSize: fontSize,
       zIndex: 7002, // volume bar is 7000
       position: "fixed",
       bottom: 0, // position at the bottom of the screen
