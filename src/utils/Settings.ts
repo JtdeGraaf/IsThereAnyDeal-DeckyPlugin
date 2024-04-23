@@ -1,4 +1,4 @@
-import { ServerAPI, staticClasses } from "decky-frontend-lib";
+import { ServerAPI } from "decky-frontend-lib";
 import { CACHE } from "./Cache";
 
 export enum Setting {
@@ -34,21 +34,23 @@ export class Settings {
       return cacheValue
     }
 
-    const response = await this.serverAPI.callPluginMethod("settings_load", {
+    this.serverAPI.callPluginMethod("settings_load", {
       key: key,
-    });
-
-    if (response.success) {
+      defaults: (key === Setting.COUNTRY) ? "" : this.defaults[key]
+      
+    }).then(async (response) => {
+      if (response.success && response.result) {
         CACHE.setValue(key, response.result)
         return response.result;
-    } else {
-        if(key === Setting.COUNTRY){
-            const actualDefaultCountry = await SteamClient.User.GetIPCountry()
-            this.save(Setting.COUNTRY, actualDefaultCountry)
-            return actualDefaultCountry
-        }
-        return this.defaults[key];
-    }
+      }
+      else if(key === Setting.COUNTRY){
+        const actualDefaultCountry = await SteamClient.User.GetIPCountry()
+        this.save(Setting.COUNTRY, actualDefaultCountry)
+        return actualDefaultCountry
+      }
+      this.save(key, this.defaults[key])
+      return this.defaults[key];
+    })
   }
 
   async save(key: Setting, value: any) {
