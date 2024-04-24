@@ -39,13 +39,13 @@ jobs:
               run: |
 
                 decky plugin build -b -o /tmp/output -s directory $GITHUB_WORKSPACE
-                
+            
             - name: Upload package
               uses: actions/upload-artifact@v2
               with:
                   name: isthereanydeal-for-deck
                   path: |
-                      /tmp/output
+                      /tmp/output/IsThereAnyDeal-DeckyPlugin.zip
     release:
         needs: build
         if: startsWith(github.ref, 'refs/tags/v')
