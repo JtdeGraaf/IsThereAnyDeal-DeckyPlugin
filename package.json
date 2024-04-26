@@ -1,6 +1,6 @@
 {
   "name": "is-there-any-deal-for-deck",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": " A Decky plugin for Steam Deck that shows IsThereAnyDeal data on the Deck's game store pages.",
   "scripts": {
     "build": "shx rm -rf dist && rollup -c",
