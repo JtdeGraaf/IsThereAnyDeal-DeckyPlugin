@@ -4,34 +4,34 @@ import { CACHE } from "../utils/Cache"
 // most of the below is stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
 
 type Tab = {
-    description: string
-    devtoolsFrontendUrl: string
-    id: string
-    title: string
-    type: 'page'
-    url: string
-    webSocketDebuggerUrl: string
-  }
-  
-  type Info = {
-    hash: string
-    key: string
-    pathname: string
-    search: string
-    state: { force: number; url: string }
-  }
-  
-  const History: {
-    listen: (callback: (info: Info) => Promise<void>) => () => void
-  } = findModuleChild((m) => {
-    if (typeof m !== 'object') return undefined
-    for (const prop in m) {
-      if (m[prop]?.m_history) return m[prop].m_history
-    }
-  })
+  description: string
+  devtoolsFrontendUrl: string
+  id: string
+  title: string
+  type: 'page'
+  url: string
+  webSocketDebuggerUrl: string
+}
 
-  export function patchStore(serverApi: ServerAPI): () => void {
-    let oldUrl = "";
+type Info = {
+  hash: string
+  key: string
+  pathname: string
+  search: string
+  state: { force: number; url: string }
+}
+
+const History: {
+  listen: (callback: (info: Info) => Promise<void>) => () => void
+} = findModuleChild((m) => {
+  if (typeof m !== 'object') return undefined
+  for (const prop in m) {
+    if (m[prop]?.m_history) return m[prop].m_history
+  }
+})
+
+export function patchStore(serverApi: ServerAPI): () => void {
+  if (History && History.listen) {
     const unlisten = History.listen(async (info) => {
       try {
         if (info.pathname === '/steamweb') {
@@ -58,10 +58,11 @@ type Tab = {
         tab.url.includes('https://isthereanydeal.com')
       );
 
-      if(itadTab){
+      let oldUrl = "";
+      if (itadTab) {
         oldUrl = "" // This is necessary so that the appID will be set again after closing the external browser
         setTimeout(() => getCurrentAppID(), 1500)
-        return      
+        return
       }
 
       if (storeTab?.url && storeTab.url !== oldUrl) {
@@ -78,7 +79,7 @@ type Tab = {
         }
       }
       // If tabs do not contain steamstore
-      if(!storeTab) {
+      if (!storeTab) {
         CACHE.setValue(CACHE.APP_ID_KEY, "")
       }
       else {
@@ -88,5 +89,8 @@ type Tab = {
 
     return unlisten;
   }
+  return () => {
+    CACHE.setValue(CACHE.APP_ID_KEY, "");
+  };
+}
 
-  
