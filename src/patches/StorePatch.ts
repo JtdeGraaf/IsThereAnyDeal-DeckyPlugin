@@ -32,6 +32,7 @@ const History: {
 
 export function patchStore(serverApi: ServerAPI): () => void {
   if (History && History.listen) {
+    let oldUrl = "";
     const unlisten = History.listen(async (info) => {
       try {
         if (info.pathname === '/steamweb') {
@@ -58,7 +59,6 @@ export function patchStore(serverApi: ServerAPI): () => void {
         tab.url.includes('https://isthereanydeal.com')
       );
 
-      let oldUrl = "";
       if (itadTab) {
         oldUrl = "" // This is necessary so that the appID will be set again after closing the external browser
         setTimeout(() => getCurrentAppID(), 1500)
