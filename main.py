@@ -55,7 +55,7 @@ class Plugin:
         )
 
     async def settings_load(self, key: str, defaults):
-        decky_plugin.logger.info("Get {}".format(key))
+        #decky_plugin.logger.info("Get {}".format(key))
         return settings.getSetting(key, defaults)
 
     async def settings_save(self, key: str, value):
