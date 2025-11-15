@@ -1,25 +1,27 @@
-name: Build and Release IsThereAnyDeal for Deck
+name: Build IsThereAnyDeal for Deck
 
 on:
     push:
-        tags:
-            - 'v*'
+        branches: ['main']
     pull_request:
         branches: ['main']
 
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
 
+    # Allows this workflow to be called by other workflows
+    workflow_call:
+
 jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - name: Setup Node
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v4
               with:
-                  node-version: '18.3'
+                  node-version: '18'
 
             - name: Install pnpm
               run: npm i -g pnpm@8.5.1
@@ -32,12 +34,10 @@ jobs:
                 mkdir /tmp/decky-cli
                 curl -L -o /tmp/decky-cli/decky "https://github.com/SteamDeckHomebrew/cli/releases/download/0.0.2/decky-linux-x86_64"
                 chmod +x /tmp/decky-cli/decky
-
                 echo "/tmp/decky-cli" >> $GITHUB_PATH
             
             - name: Build plugin
               run: |
-
                 decky plugin build -b -o /tmp/output -s directory $GITHUB_WORKSPACE
 
             - name: Unzip plugin
@@ -46,29 +46,7 @@ jobs:
                   unzip /tmp/output/IsThereAnyDeal-DeckyPlugin.zip -d /tmp/artifacts
             
             - name: Upload package
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: isthereanydeal-for-deck
-                  path: |
-                      /tmp/artifacts/IsThereAnyDeal-DeckyPlugin
-    release:
-        needs: build
-        if: startsWith(github.ref, 'refs/tags/v')
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-
-            - uses: actions/download-artifact@v3
-              with:
-                  name: isthereanydeal-for-deck
-                  path: isthereanydeal-for-deck
-
-            - name: zip/tar release
-              run: |
-                  zip -r isthereanydeal-for-deck.zip isthereanydeal-for-deck/*
-                  tar -czvf isthereanydeal-for-deck.tar.gz isthereanydeal-for-deck
-
-            - name: Create a release
-              uses: ncipollo/release-action@v1
-              with:
-                  artifacts: 'isthereanydeal-for-deck.zip,isthereanydeal-for-deck.tar.gz'
+                  path: /tmp/artifacts/IsThereAnyDeal-DeckyPlugin

@@ -1,0 +1,37 @@
+name: Release IsThereAnyDeal for Deck
+
+on:
+    push:
+        tags:
+            - 'v*'
+
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+jobs:
+    build:
+        uses: ./.github/workflows/build.yml
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/download-artifact@v4
+              with:
+                  name: isthereanydeal-for-deck
+                  path: isthereanydeal-for-deck
+
+            - name: zip/tar release
+              run: |
+                  zip -r isthereanydeal-for-deck.zip isthereanydeal-for-deck/*
+                  tar -czvf isthereanydeal-for-deck.tar.gz isthereanydeal-for-deck
+
+            - name: Create a release
+              uses: ncipollo/release-action@v1
+              with:
+                  artifacts: 'isthereanydeal-for-deck.zip,isthereanydeal-for-deck.tar.gz'
+
