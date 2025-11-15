@@ -33,14 +33,25 @@ const History: {
 export function patchStore(serverApi: ServerAPI): () => void {
   if (History && History.listen) {
     let oldUrl = "";
+    let pollingTimeoutId: NodeJS.Timeout | null = null;
+
+    const stopPolling = () => {
+      if (pollingTimeoutId) {
+        clearTimeout(pollingTimeoutId);
+        pollingTimeoutId = null;
+      }
+    };
+
     const unlisten = History.listen(async (info) => {
       try {
         if (info.pathname === '/steamweb') {
           getCurrentAppID();
         } else {
+          stopPolling();
           CACHE.setValue(CACHE.APP_ID_KEY, "");
         }
       } catch (err) {
+        stopPolling();
         CACHE.setValue(CACHE.APP_ID_KEY, "");
       }
     });
@@ -61,7 +72,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
 
       if (itadTab) {
         oldUrl = "" // This is necessary so that the appID will be set again after closing the external browser
-        setTimeout(() => getCurrentAppID(), 1500)
+        pollingTimeoutId = setTimeout(() => getCurrentAppID(), 1500)
         return
       }
 
@@ -70,24 +81,25 @@ export function patchStore(serverApi: ServerAPI): () => void {
         const appId = storeTab.url.match(/\/app\/([\d]+)\/?/)?.[1];
         if (appId) {
           CACHE.setValue(CACHE.APP_ID_KEY, appId);
-          // As long as the steam store is open do refreshes
-          setTimeout(() => getCurrentAppID(), 1500)
         } else {
           CACHE.setValue(CACHE.APP_ID_KEY, "");
-          // As long as the steam store is open do refreshes
-          setTimeout(() => getCurrentAppID(), 1500)
         }
-      }
-      // If tabs do not contain steamstore
-      if (!storeTab) {
+        // As long as the steam store is open do refreshes
+        pollingTimeoutId = setTimeout(() => getCurrentAppID(), 1500)
+      } else if (storeTab) {
+        // Store tab exists but URL hasn't changed, continue polling
+        pollingTimeoutId = setTimeout(() => getCurrentAppID(), 1500)
+      } else {
+        // No store tab found, stop polling
         CACHE.setValue(CACHE.APP_ID_KEY, "")
-      }
-      else {
-        setTimeout(() => getCurrentAppID(), 1500)
+        stopPolling();
       }
     };
 
-    return unlisten;
+    return () => {
+      stopPolling();
+      unlisten();
+    };
   }
   return () => {
     CACHE.setValue(CACHE.APP_ID_KEY, "");
