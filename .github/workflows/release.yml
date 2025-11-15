@@ -23,12 +23,12 @@ jobs:
             - uses: actions/download-artifact@v4
               with:
                   name: isthereanydeal-for-deck
-                  path: isthereanydeal-for-deck
+                  path: .
 
             - name: zip/tar release
               run: |
-                  zip -r isthereanydeal-for-deck.zip isthereanydeal-for-deck/*
-                  tar -czvf isthereanydeal-for-deck.tar.gz isthereanydeal-for-deck
+                  zip -r isthereanydeal-for-deck.zip "IsThereAnyDeal for Deck"
+                  tar -czvf isthereanydeal-for-deck.tar.gz "IsThereAnyDeal for Deck"
 
             - name: Create a release
               uses: ncipollo/release-action@v1
