@@ -1,16 +1,19 @@
 // Define storefront keys as a const tuple so they behave like an enum (easy to iterate and type-safe)
-const STOREFRONT_KEYS = ["Steam", "Epic"] as const;
+const STOREFRONT_KEYS = ["Steam", "Epic", "GOG", "Ubisoft", "EA", "Rockstar"] as const;
 export type StorefrontKey = typeof STOREFRONT_KEYS[number];
 
-// Metadata for each storefront (id used by ITAD and a canonical match string)
+// Metadata for each storefront on ITAD
 const STOREFRONTS: Readonly<Record<StorefrontKey, { id: number; match: string }>> = {
   Steam: { id: 61, match: "steam" },
   Epic: { id: 16, match: "epic" },
+  GOG: { id: 53, match: "gog" },
+  Ubisoft: { id: 62, match: "ubisoft" },
+  EA: { id: 52, match: "ea" },
+  Rockstar: { id: 501, match: "rockstar" },
 };
 
 import { SETTINGS, Setting } from "../utils/Settings";
 
-// Internal helpers (not exported directly) — consumers should use the Storefronts namespace below.
 
 function enabledKeysFromMapInternal(storefrontMap: Record<string, boolean> | undefined): StorefrontKey[] {
   if (!storefrontMap) return [];
