@@ -1,20 +1,21 @@
+import { useSettings } from '../hooks/useSettings'
 import { DropdownItem, PanelSection, PanelSectionRow, ToggleField } from 'decky-frontend-lib'
-import { useEffect, useState } from 'react'
-import { SETTINGS, Setting } from '../utils/Settings';
 import { countries } from '../models/Country';
 
 const DeckyMenuOption = () => {
-  const [allowVouchersInPrices, setAllowVouchersInPrices] = useState(SETTINGS.defaults.allowVouchersInPrices)
-  const [country, setCountry] = useState(SETTINGS.defaults.country)
-  const [fontSize, setFontSize] = useState(SETTINGS.defaults.fontSize)
-  const [paddingBottom, setPaddingBottom] = useState(SETTINGS.defaults.paddingBottom)
-
-  useEffect(() => {
-    SETTINGS.load(Setting.ALLOW_VOUCHERS_IN_PRICES).then(setAllowVouchersInPrices);
-    SETTINGS.load(Setting.COUNTRY).then(setCountry)
-    SETTINGS.load(Setting.FONTSIZE).then(setFontSize)
-    SETTINGS.load(Setting.PADDING_BOTTOM).then(setPaddingBottom)
-  }, []);
+  const {
+    allowVouchersInPrices,
+    saveVouchers,
+    country,
+    saveCountry,
+    fontSize,
+    saveFontSize,
+    paddingBottom,
+    savePaddingBottom,
+    storefronts,
+    toggleStorefront,
+    storefrontKeys
+  } = useSettings();
 
   const countryOptions = countries.map((country, index) => ({
     data: index,
@@ -31,7 +32,6 @@ const DeckyMenuOption = () => {
     paddingOptions.push({ data: size, label: `${size}px`, value: size });
   }
 
-
   return (
     <>
         <PanelSection title="Settings">
@@ -42,17 +42,16 @@ const DeckyMenuOption = () => {
               rgOptions={countryOptions} 
               selectedOption={countryOptions.find(option => option.value === country)?.data} 
               onChange={(option) => {
-                SETTINGS.save(Setting.COUNTRY,
-                 countryOptions.find(countryOption => countryOption.data === option.data)?.value)}}
+                const val = countryOptions.find(countryOption => countryOption.data === option.data)?.value
+                saveCountry(val || country)
+              }}
             ></DropdownItem>
           </PanelSectionRow>
           <PanelSectionRow>
             <ToggleField 
               label="Allow vouchers in prices" 
               checked={allowVouchersInPrices}
-              onChange={(checked) => {
-                SETTINGS.save(Setting.ALLOW_VOUCHERS_IN_PRICES, checked)
-              }}
+              onChange={(checked) => saveVouchers(checked)}
             /></PanelSectionRow>
         </PanelSection>
         <PanelSection title='Customization'>
@@ -60,19 +59,26 @@ const DeckyMenuOption = () => {
             label="Font Size"
             rgOptions={fontSizeOptions} 
             selectedOption={fontSizeOptions.find(option => option.value === fontSize)?.data}
-            onChange={(option) => {
-              SETTINGS.save(Setting.FONTSIZE, option.data)
-            }}
+            onChange={(option) => saveFontSize(option.data)}
           ></DropdownItem>
           <DropdownItem 
             label="Padding Bottom"
             description="Change how far the text will be from the bottom of the screen"
             rgOptions={paddingOptions} 
             selectedOption={paddingOptions.find(option => option.value === paddingBottom)?.data}
-            onChange={(option) => {
-              SETTINGS.save(Setting.PADDING_BOTTOM, option.data)
-            }}
+            onChange={(option) => savePaddingBottom(option.data)}
           ></DropdownItem>
+        </PanelSection>
+        <PanelSection title='Storefronts'>
+          {storefrontKeys.map((key) => (
+            <PanelSectionRow key={`sf-${key}`}>
+              <ToggleField
+                label={key}
+                checked={storefronts[key]}
+                onChange={(checked) => toggleStorefront(key, checked)}
+              />
+            </PanelSectionRow>
+          ))}
         </PanelSection>
     </>
   );
