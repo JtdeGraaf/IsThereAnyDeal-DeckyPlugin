@@ -1,37 +1,43 @@
-// Define storefront keys as a const tuple so they behave like an enum (easy to iterate and type-safe)
-const STOREFRONT_KEYS = ["Steam", "Epic", "GOG", "Ubisoft", "EA", "Rockstar"] as const;
-export type StorefrontKey = typeof STOREFRONT_KEYS[number];
-
-// Metadata for each storefront on ITAD
-const STOREFRONTS: Readonly<Record<StorefrontKey, { id: number; match: string }>> = {
-  Steam: { id: 61, match: "steam" },
-  Epic: { id: 16, match: "epic" },
-  GOG: { id: 53, match: "gog" },
-  Ubisoft: { id: 62, match: "ubisoft" },
-  EA: { id: 52, match: "ea" },
-  Rockstar: { id: 501, match: "rockstar" },
-};
-
 import { SETTINGS, Setting } from "../utils/Settings";
 
+const STOREFRONT_KEYS = [
+    "Steam",
+    "Epic",
+    "GOG",
+    "Ubisoft",
+    "EA",
+    "Rockstar",
+] as const;
 
-function enabledKeysFromMapInternal(storefrontMap: Record<string, boolean> | undefined): StorefrontKey[] {
-  if (!storefrontMap) return [];
-  return STOREFRONT_KEYS.filter((k) => storefrontMap[k]);
+export type StorefrontKey = (typeof STOREFRONT_KEYS)[number];
+
+// ITAD metadata
+const STOREFRONTS: Readonly<Record<StorefrontKey, { id: number }>> = {
+    Steam: { id: 61 },
+    Epic: { id: 16 },
+    GOG: { id: 53 },
+    Ubisoft: { id: 62 },
+    EA: { id: 52 },
+    Rockstar: { id: 501 },
+};
+
+
+function enabledStorefrontKeys(
+    map?: Record<string, boolean>
+): StorefrontKey[] {
+    return map ? STOREFRONT_KEYS.filter(k => map[k]) : [];
 }
 
-async function loadEnabledKeysInternal(): Promise<StorefrontKey[]> {
-  const map = await SETTINGS.load(Setting.STOREFRONTS);
-  return enabledKeysFromMapInternal(map);
+async function getEnabledStorefronts(): Promise<StorefrontKey[]> {
+    const map = await SETTINGS.load(Setting.STOREFRONTS);
+    return enabledStorefrontKeys(map);
 }
 
-
-
-// Namespaced API to make it obvious these helpers are for storefronts.
+// Exported API
 export const Storefronts = {
-  keys: STOREFRONT_KEYS as readonly StorefrontKey[],
-  getEnabledStorefronts: async (): Promise<StorefrontKey[]> => await loadEnabledKeysInternal(),
-  meta: STOREFRONTS,
-}
+    keys: STOREFRONT_KEYS,
+    meta: STOREFRONTS,
+    getEnabledStorefronts,
+};
 
 export default Storefronts;

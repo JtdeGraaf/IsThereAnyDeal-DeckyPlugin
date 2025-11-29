@@ -7,7 +7,7 @@ export function useSettings() {
   const [country, setCountry] = useState<string>(SETTINGS.defaults.country);
   const [fontSize, setFontSize] = useState<number>(SETTINGS.defaults.fontSize);
   const [paddingBottom, setPaddingBottom] = useState<number>(SETTINGS.defaults.paddingBottom);
-  const STEAM_ONLY_DEFAULT: Record<StorefrontKey, boolean> = { Steam: true, Epic: false };
+  const STEAM_ONLY_DEFAULT: Record<StorefrontKey, boolean> = { Steam: true, Epic: false, GOG: false, Ubisoft: false, EA: false, Rockstar: false };
   const [storefronts, setStorefronts] = useState<Record<StorefrontKey, boolean>>(STEAM_ONLY_DEFAULT);
 
   useEffect(() => {
@@ -77,6 +77,6 @@ export function useSettings() {
     savePaddingBottom,
     storefronts,
     toggleStorefront,
-    storefrontKeys: Storefronts.keys as StorefrontKey[]
+    storefrontKeys: Storefronts.keys
   }
 }
