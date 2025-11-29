@@ -1,6 +1,8 @@
 import { useSettings } from '../hooks/useSettings'
 import {DropdownItem, PanelSection, PanelSectionRow, ToggleField} from 'decky-frontend-lib'
 import { countries } from '../models/Country';
+import {SiGithub} from "react-icons/si";
+import PanelSocialButton from "./PanelSocialButton";
 
 const DeckyMenuOption = () => {
   const {
@@ -82,6 +84,14 @@ const DeckyMenuOption = () => {
             selectedOption={paddingOptions.find(option => option.value === paddingBottom)?.data}
             onChange={(option) => savePaddingBottom(option.data)}
           ></DropdownItem>
+        </PanelSection>
+        <PanelSection title={'Links'}>
+            <PanelSocialButton
+                icon={<SiGithub fill="#5865F2" />}
+                url="https://github.com/JtdeGraaf/IsThereAnyDeal-DeckyPlugin"
+            >
+                Github
+            </PanelSocialButton>
         </PanelSection>
     </>
   );

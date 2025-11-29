@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "decky-frontend-lib": "^3.25.0",
+    "qrcode.react": "^4.2.0",
     "react-icons": "^4.4.0"
   },
   "pnpm": {
