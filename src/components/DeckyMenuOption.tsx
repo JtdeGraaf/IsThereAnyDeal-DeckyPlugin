@@ -1,5 +1,5 @@
 import { useSettings } from '../hooks/useSettings'
-import {DropdownItem, PanelSection, PanelSectionRow, TextField, ToggleField} from 'decky-frontend-lib'
+import {DropdownItem, PanelSection, PanelSectionRow, ToggleField} from 'decky-frontend-lib'
 import { countries } from '../models/Country';
 
 const DeckyMenuOption = () => {
@@ -55,9 +55,9 @@ const DeckyMenuOption = () => {
             /></PanelSectionRow>
         </PanelSection>
         <PanelSection title="Storefronts">
-            <PanelSectionRow>
-                <TextField>Storefronts let you control which store keys are included in results. Enabling Steam includes Steam keys, enabling Epic includes Epic Games Store keys, etc.</TextField>
-            </PanelSectionRow>
+            <div style={{ fontSize: '12px' , margin: '8px 0' }}>
+                Storefronts let you control which store keys are included in results. Enabling Steam includes Steam keys, enabling Epic includes Epic Games Store keys, etc.
+            </div>
             {storefrontKeys.map((storefrontKey) => (
                 <PanelSectionRow key={`sf-${storefrontKey}`}>
                     <ToggleField
