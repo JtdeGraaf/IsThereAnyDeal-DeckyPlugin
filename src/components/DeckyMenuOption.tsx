@@ -54,6 +54,22 @@ const DeckyMenuOption = () => {
               onChange={(checked) => saveVouchers(checked)}
             /></PanelSectionRow>
         </PanelSection>
+        <PanelSection title="Storefronts">
+            <PanelSectionRow>
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: 8 }}>
+                    Storefronts let you control which store keys are included in results. Enabling Steam includes Steam keys, enabling Epic includes Epic Games Store keys, etc.
+                </div>
+            </PanelSectionRow>
+            {storefrontKeys.map((storefrontKey) => (
+                <PanelSectionRow key={`sf-${storefrontKey}`}>
+                    <ToggleField
+                        label={storefrontKey}
+                        checked={storefronts[storefrontKey]}
+                        onChange={(checked) => toggleStorefront(storefrontKey, checked)}
+                    />
+                </PanelSectionRow>
+            ))}
+        </PanelSection>
         <PanelSection title='Customization'>
           <DropdownItem 
             label="Font Size"
@@ -68,17 +84,6 @@ const DeckyMenuOption = () => {
             selectedOption={paddingOptions.find(option => option.value === paddingBottom)?.data}
             onChange={(option) => savePaddingBottom(option.data)}
           ></DropdownItem>
-        </PanelSection>
-        <PanelSection title='Storefronts'>
-          {storefrontKeys.map((key) => (
-            <PanelSectionRow key={`sf-${key}`}>
-              <ToggleField
-                label={key}
-                checked={storefronts[key]}
-                onChange={(checked) => toggleStorefront(key, checked)}
-              />
-            </PanelSectionRow>
-          ))}
         </PanelSection>
     </>
   );
