@@ -1,5 +1,5 @@
 # IsThereAnyDeal Decky Plugin
-![Decky Loader](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fplugins.deckbrew.xyz%2Fplugins&query=%24%5B%3F(%40.id%20%3D%3D%20'81')%5D.downloads&suffix=%20installs&label=decky&color=3ea6a3) [![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/JtdeGraaf)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdecky-plugins.graaf.dev%2F%3Fid%3D81&query=downloads&suffix=%20downloads&label=Decky)
 
 This plugin shows IsThereAnyDeal data on the Steam Deck's game store pages.
 
@@ -13,3 +13,5 @@ This plugin shows IsThereAnyDeal data on the Steam Deck's game store pages.
 ---
 
 ![Untitled](https://github.com/JtdeGraaf/IsThereAnyDeal-DeckyPlugin/assets/94895953/f745f3db-663a-4742-aed6-90e3b096e884)
+
+![Dynamic Regex Badge](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fplugins.deckbrew.xyz%2Fplugins&search=%22id%22%5Cs*%3A%5Cs*81%5B%5Cs%5CS%5D*%3F%22downloads%22%5Cs*%3A%5Cs*(%5B0-9%5D%2B))
