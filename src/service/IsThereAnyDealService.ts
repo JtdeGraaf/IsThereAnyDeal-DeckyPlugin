@@ -2,6 +2,7 @@ import { ServerAPI, ServerResponse } from "decky-frontend-lib";
 import { Deal } from "../models/Deal";
 import { Game } from "../models/Game";
 import { SETTINGS, Setting } from "../utils/Settings";
+import Storefronts from "../models/Storefront";
 import { CACHE } from "../utils/Cache";
 
 interface DealResponse {
@@ -85,18 +86,25 @@ export class IsThereAnyDealService {
     const dealResponse: DealResponse[] = JSON.parse(serverResponseDeals.result.body)
     if(dealResponse.length <= 0  || dealResponse[0].deals.length <= 0 ) throw new Error("No deals found")
     
-    // Initialize variables to track the lowest price deal
-    let lowestPrice = Infinity;
-    let lowestPriceDeal = null;
-    let steamDeal = null;
-    const STEAM_SHOP_ID = 61
 
-    // Iterate over all deals to find the one with the lowest price
+    const enabledIds = await Storefronts.getEnabledStorefronts().then(storefronts => new Set(storefronts.map(key => Storefronts.meta[key].id)));
+
+    let lowestPrice = Infinity;
+    let lowestPriceDeal: Deal | null = null;
+    let steamDeal: Deal | null = null;
+    const STEAM_SHOP_ID = Storefronts.meta.Steam.id;
+
+    // Iterate over all deals to find the one with the lowest price, but only consider allowed storefronts
     for (const deal of dealResponse[0].deals) {
-        
+        // store steamDeal regardless for tie-break logic, because if the lowest price is the same as on Steam then we want to show the steam deal
         if(deal.shop.id === STEAM_SHOP_ID){
             steamDeal = deal
         }
+
+        if (!this.isDealAllowed(deal, enabledIds))  {
+            continue
+        }
+
         if (deal.price.amount < lowestPrice) {
             lowestPrice = deal.price.amount;
             lowestPriceDeal = deal;
@@ -107,10 +115,41 @@ export class IsThereAnyDealService {
     if (!lowestPriceDeal) throw new Error("No deals found")
     
     // Check if the lowestPriceDeal is the same price as on Steam if so return the steamdeal
-    if(steamDeal && steamDeal.price.amount === lowestPriceDeal.price.amount) return steamDeal
+    if(steamDeal && steamDeal.price.amount === lowestPriceDeal.price.amount)  {
+        return steamDeal
+    }
     return lowestPriceDeal
   }
 
+    /**
+     * Checks if a deal is allowed based on the allowed storefronts, only allow deals where the DRM matches one of the enabled storefronts.
+     *
+     * @param deal - the deal with DRM info
+     * @param enabledIds - the set of enabled storefronts
+     * @returns true if the deal is allowed, false otherwise
+     */
+    private isDealAllowed(deal: Deal, enabledIds: Set<number>): boolean {
+        // If no storefronts settings found, allow all
+        if (!enabledIds || enabledIds.size === 0) {
+            return true;
+        }
+
+        // If DRM is empty or missing, assume the key is specific to the shop that provided it
+        if (!deal.drm || deal.drm.length === 0) {
+            const shopId = Number(deal.shop.id);
+            return enabledIds.has(shopId);
+        }
+
+        // collect DRM ids present on the deal and check for any match with enabled ids
+        for (const drm of deal.drm) {
+            const drmId = Number(drm.id);
+            if (enabledIds.has(drmId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
 }
-
