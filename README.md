@@ -13,5 +13,3 @@ This plugin shows IsThereAnyDeal data on the Steam Deck's game store pages.
 ---
 
 ![Untitled](https://github.com/JtdeGraaf/IsThereAnyDeal-DeckyPlugin/assets/94895953/f745f3db-663a-4742-aed6-90e3b096e884)
-
-![Dynamic Regex Badge](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fplugins.deckbrew.xyz%2Fplugins&search=%22id%22%5Cs*%3A%5Cs*81%5B%5Cs%5CS%5D*%3F%22downloads%22%5Cs*%3A%5Cs*(%5B0-9%5D%2B))
