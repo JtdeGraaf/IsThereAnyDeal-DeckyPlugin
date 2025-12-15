@@ -22,7 +22,7 @@ export default definePlugin((serverApi: ServerAPI) => {
 
   serverApi.routerHook.addGlobalComponent("PriceComparison", PriceComparison )
 
-  const storePatch = patchStore();
+  const storePatch = patchStore(serverApi)
 
 
   return {

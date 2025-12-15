@@ -1,9 +1,15 @@
-import { findModuleChild } from "decky-frontend-lib"
+import { ServerAPI, findModuleChild } from "decky-frontend-lib"
 import { CACHE } from "../utils/Cache"
 
-const LOG_PREFIX = '[IsThereAnyDeal:StorePatch]'
-
-// most of the below is stolen from https://github.com/OMGDuke/protondb-decky/tree/28/store-injection
+type Tab = {
+    description: string
+    devtoolsFrontendUrl: string
+    id: string
+    title: string
+    type: 'page'
+    url: string
+    webSocketDebuggerUrl: string
+}
 
 type Info = {
     hash: string
@@ -14,7 +20,8 @@ type Info = {
 }
 
 const History: {
-    listen: (callback: (info: Info) => Promise<void>) => () => void
+    listen: (callback: (info: Info) => void) => () => void;
+    location?: Info; 
 } = findModuleChild((m) => {
     if (typeof m !== 'object') return undefined
     for (const prop in m) {
@@ -22,51 +29,112 @@ const History: {
     }
 })
 
-export function patchStore(): () => void {
-    console.log(`${LOG_PREFIX} patchStore() called`)
-    if (History && History.listen) {
-        console.log(`${LOG_PREFIX} History.listen available - attaching listener`)
-        const unlisten = History.listen(async (info) => {
-            try {
-                console.log(`${LOG_PREFIX} navigation event`, { pathname: info?.pathname, url: info?.state?.url })
-                // The router 'info' object usually contains the current URL in 'state.url' when the pathname is '/steamweb'
-                if (info.pathname === '/steamweb' && info.state?.url) {
-                    const url = info.state.url;
-
-                    // Ensure we are strictly on the steam store before parsing
-                    if (url.includes('https://store.steampowered.com')) {
-                        const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
-                        if (appId) {
-                            console.log(`${LOG_PREFIX} Detected appId: ${appId} - setting CACHE`)
-                            CACHE.setValue(CACHE.APP_ID_KEY, appId);
-                            return;
-                        } else {
-                            console.log(`${LOG_PREFIX} URL on steam web but no appId found in URL`, { url })
-                        }
-                    } else {
-                        console.log(`${LOG_PREFIX} state.url present but not a steam store URL`, { url })
-                    }
-                } else {
-                    console.log(`${LOG_PREFIX} Not on /steamweb or state.url missing`, { pathname: info.pathname, stateUrl: info.state?.url })
-                }
-
-                // If we are not on /steamweb or the URL doesn't match an app, clear the ID
-                console.log(`${LOG_PREFIX} Clearing CACHE.APP_ID_KEY`)
-                CACHE.setValue(CACHE.APP_ID_KEY, "");
-            } catch (err) {
-                console.error(`${LOG_PREFIX} Error in History.listen handler`, err)
-                CACHE.setValue(CACHE.APP_ID_KEY, "");
-            }
-        });
-
-        return () => {
-            console.log(`${LOG_PREFIX} Unlistening history events`)
-            unlisten();
-        };
+export function patchStore(serverApi: ServerAPI): () => void {
+    if (!History || !History.listen) {
+        return () => { CACHE.setValue(CACHE.APP_ID_KEY, ""); };
     }
 
-    console.log(`${LOG_PREFIX} History or History.listen not found - returning cleanup that clears CACHE`)
-    return () => {
+    let ws: WebSocket | null = null;
+    let retryTimeout: NodeJS.Timeout | null = null;
+
+    const cleanup = () => {
+        if (ws) {
+            ws.close();
+            ws = null;
+        }
+        if (retryTimeout) {
+            clearTimeout(retryTimeout);
+            retryTimeout = null;
+        }
         CACHE.setValue(CACHE.APP_ID_KEY, "");
+    };
+
+    const updateAppIdFromUrl = (url: string) => {
+        // Check for ITAD or other external sites if needed, logic copied from original
+        if (url.includes('https://isthereanydeal.com')) {
+            // Original logic had special handling here, but for now we just clear
+            // or you can implement specific logic.
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
+            return;
+        }
+
+        if (url.includes('https://store.steampowered.com')) {
+            const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
+            CACHE.setValue(CACHE.APP_ID_KEY, appId || "");
+        } else {
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
+        }
+    };
+
+    const connectToStoreTab = async (retries = 3) => {
+        try {
+            // 1. Fetch the list of open tabs (pages)
+            const response = await serverApi.fetchNoCors<{ body: string }>('http://localhost:8080/json');
+            if (!response.success) throw new Error("Failed to fetch tabs");
+
+            const tabs: Tab[] = JSON.parse(response.result.body) || [];
+            const storeTab = tabs.find((tab) => tab.url.includes('https://store.steampowered.com'));
+
+            if (storeTab && storeTab.webSocketDebuggerUrl) {
+                // 2. Set the initial state from the current URL
+                updateAppIdFromUrl(storeTab.url);
+
+                // 3. Connect to the WebSocket debugger
+                if (ws) ws.close();
+                ws = new WebSocket(storeTab.webSocketDebuggerUrl);
+
+                ws.onopen = () => {
+                    // Enable Page events to get navigation updates
+                    ws?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        // Listen for navigation events
+                        if (data.method === "Page.frameNavigated" && data.params?.frame?.url) {
+                            updateAppIdFromUrl(data.params.frame.url);
+                        }
+                    } catch (e) {
+                        console.error("[IsThereAnyDeal Store Patch] Error parsing WS message", e);
+                    }
+                };
+
+                ws.onclose = () => {
+                    // If the store tab closes/crashes, clear the cache
+                    CACHE.setValue(CACHE.APP_ID_KEY, "");
+                }
+
+            } else if (retries > 0) {
+                // Store tab might not be ready yet (e.g. just clicked the tab)
+                retryTimeout = setTimeout(() => connectToStoreTab(retries - 1), 1000);
+            }
+        } catch (e) {
+            console.error("[IsThereAnyDeal Store Patch] Error connecting to Store tab:", e);
+            if (retries > 0) {
+                retryTimeout = setTimeout(() => connectToStoreTab(retries - 1), 1000);
+            }
+        }
+    };
+
+    // Listen to the main Steam Deck router
+    const unlisten = History.listen((info) => {
+        if (info.pathname === '/steamweb') {
+            // We entered the Store view, try to connect to the internal browser
+            connectToStoreTab();
+        } else {
+            // We left the Store view, disconnect everything
+            cleanup();
+        }
+    });
+
+    // Initial check in case we loaded *while* already in the store
+    if (History.location?.pathname === '/steamweb') {
+        connectToStoreTab();
+    }
+
+    return () => {
+        cleanup();
+        unlisten();
     };
 }
