@@ -50,17 +50,19 @@ export function patchStore(serverApi: ServerAPI): () => void {
     };
 
     const updateAppIdFromUrl = (url: string) => {
-        // Check for ITAD or other external sites if needed, logic copied from original
         if (url.includes('https://isthereanydeal.com')) {
-            // Original logic had special handling here, but for now we just clear
-            // or you can implement specific logic.
             CACHE.setValue(CACHE.APP_ID_KEY, "");
             return;
         }
 
         if (url.includes('https://store.steampowered.com')) {
             const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
-            CACHE.setValue(CACHE.APP_ID_KEY, appId || "");
+            if (appId) {
+                CACHE.setValue(CACHE.APP_ID_KEY, appId);
+            }
+            else {
+                CACHE.setValue(CACHE.APP_ID_KEY, "");
+            }
         } else {
             CACHE.setValue(CACHE.APP_ID_KEY, "");
         }
