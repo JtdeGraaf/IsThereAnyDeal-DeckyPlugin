@@ -168,10 +168,15 @@ export function patchStore(serverApi: ServerAPI): () => void {
     // Central handler for routing state changes
     const handleLocationChange = (pathname: string) => {
         if (pathname === '/steamweb') {
-            if (!isStoreMounted) {
-                isStoreMounted = true;
-                connectToStoreDebugger();
-            }
+            // Set a small timeout to make sure the store tab url is updated after the navigation,
+            // e.g. when going from the library to the store, a game's store page might still be loaded but then steamOS immediately navigates to the front page causing some weird timing issues.
+            setTimeout(() => {
+                if (!isStoreMounted) {
+                    isStoreMounted = true;
+                    connectToStoreDebugger();
+                }
+            },1000)
+
         }
         else {
             if (isStoreMounted) {
