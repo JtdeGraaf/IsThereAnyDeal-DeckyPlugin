@@ -21,7 +21,7 @@ type Info = {
 
 const History: {
     listen: (callback: (info: Info) => void) => () => void;
-    location?: Info; 
+    location?: Info;
 } = findModuleChild((m) => {
     if (typeof m !== 'object') return undefined
     for (const prop in m) {
@@ -37,9 +37,19 @@ export function patchStore(serverApi: ServerAPI): () => void {
     let storeWebSocket: WebSocket | null = null;
     let retryTimer: NodeJS.Timeout | null = null;
 
-    // Disconnect/teardown helper - closes websocket and clears timers/cache
+    // State flag to track if we are in the store.
+    // This helps prevent race conditions where a WS message arrives after we left.
+    let isStoreMounted = false;
+
+    // Disconnect/teardown helper
     const disconnectStoreDebugger = () => {
+        isStoreMounted = false; // Mark as inactive immediately
+
         if (storeWebSocket) {
+            // Remove listeners to prevent any pending messages from firing
+            storeWebSocket.onopen = null;
+            storeWebSocket.onmessage = null;
+            storeWebSocket.onclose = null;
             storeWebSocket.close();
             storeWebSocket = null;
         }
@@ -47,10 +57,17 @@ export function patchStore(serverApi: ServerAPI): () => void {
             clearTimeout(retryTimer);
             retryTimer = null;
         }
+        // Force clear the cache
         CACHE.setValue(CACHE.APP_ID_KEY, "");
     };
 
     const updateAppIdFromUrl = (url: string) => {
+        // Guard: If we've already left the store view, do not update the url, as it may cause the PriceComparison component to render on none store screens
+        if (!isStoreMounted) {
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
+            return;
+        }
+
         if (url.includes('https://isthereanydeal.com')) {
             CACHE.setValue(CACHE.APP_ID_KEY, "");
             return;
@@ -60,8 +77,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
             const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
             if (appId) {
                 CACHE.setValue(CACHE.APP_ID_KEY, appId);
-            }
-            else {
+            } else {
                 CACHE.setValue(CACHE.APP_ID_KEY, "");
             }
         } else {
@@ -69,15 +85,14 @@ export function patchStore(serverApi: ServerAPI): () => void {
         }
     };
 
-    // Attempt to attach to the Steam store tab's debugger websocket and listen for navigation events (URL changes)
     const connectToStoreDebugger = async (retries = 3) => {
+        if (!isStoreMounted) return; // Stop if we navigated away during the async wait
+
         try {
-            // 1. Fetch the list of open tabs (pages)
+            // 1. Fetch the tabs
             const response = await serverApi.fetchNoCors<{ body: string }>('http://localhost:8080/json');
             if (!response.success) {
-                console.error("[IsThereAnyDeal Store Patch] Failed to fetch tabs (fetchNoCors returned success=false)");
-                CACHE.setValue(CACHE.APP_ID_KEY, "");
-                if (retries > 0) {
+                if (retries > 0 && isStoreMounted) {
                     retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
                 }
                 return;
@@ -87,70 +102,76 @@ export function patchStore(serverApi: ServerAPI): () => void {
             const storeTab = tabs.find((tab) => tab.url.includes('https://store.steampowered.com'));
 
             if (storeTab && storeTab.webSocketDebuggerUrl) {
-                // 2. Set the initial state from the current URL
+                // 2. Update the appId from the current URL
                 updateAppIdFromUrl(storeTab.url);
 
-                // 3. Connect to the WebSocket debugger
+                // 3. Connect to the websocket debugger to listen for navigation events
                 if (storeWebSocket) storeWebSocket.close();
                 storeWebSocket = new WebSocket(storeTab.webSocketDebuggerUrl);
 
                 storeWebSocket.onopen = () => {
-                    // 4. Enable Page events to get navigation updates
-                    storeWebSocket?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
+                    if (isStoreMounted) {
+                        storeWebSocket?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
+                    } else {
+                        storeWebSocket?.close();
+                    }
                 };
 
                 storeWebSocket.onmessage = (event) => {
+                    if (!isStoreMounted) return; // Ignore messages if we aren't in the store view
+
                     try {
                         const data = JSON.parse(event.data);
-                        // 5. Listen for navigation events and update the app ID if the URL changes
+                        // If a page navigation event is received, update the appId from the url
                         if (data.method === "Page.frameNavigated" && data.params?.frame?.url) {
                             updateAppIdFromUrl(data.params.frame.url);
                         }
                     } catch (e) {
-                        CACHE.setValue(CACHE.APP_ID_KEY, "");
-                        console.error("[IsThereAnyDeal Store Patch] Error parsing WS message", e);
+                        // ignore parsing errors
                     }
                 };
 
                 storeWebSocket.onclose = () => {
-                    // If the store tab closes/crashes, clear the cache
-                    CACHE.setValue(CACHE.APP_ID_KEY, "");
+                    if (isStoreMounted) {
+                        CACHE.setValue(CACHE.APP_ID_KEY, "");
+                    }
                 }
 
-            } else if (retries > 0) {
-                CACHE.setValue(CACHE.APP_ID_KEY, "");
-                // Store tab might not be ready yet - retry up to `retries` times
+            } else if (retries > 0 && isStoreMounted) {
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
             }
         } catch (e) {
-            CACHE.setValue(CACHE.APP_ID_KEY, "");
-            console.error("[IsThereAnyDeal Store Patch] Error connecting to Store tab:", e);
-            if (retries > 0) {
+            if (retries > 0 && isStoreMounted) {
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
             }
         }
     };
 
-    // Start listening to the Steam Deck router. The returned function unsubscribes the listener.
-    // We subscribe on module init and only connect to the internal webview debugger while the
-    // deck's router reports the `/steamweb` path. When we leave that path we disconnect.
-    const stopHistoryListener = History.listen((info) => {
-        // Only connect when the user is viewing the internal web view for the store
-        if (info.pathname === '/steamweb') {
-            // We entered the Store view, try to connect to the internal browser debugger
-            connectToStoreDebugger();
+    // Central handler for routing state changes
+    const handleLocationChange = (pathname: string) => {
+        if (pathname === '/steamweb') {
+            if (!isStoreMounted) {
+                isStoreMounted = true;
+                connectToStoreDebugger();
+            }
         } else {
-            // We left the Store view, disconnect everything
-            disconnectStoreDebugger();
+            if (isStoreMounted) {
+                disconnectStoreDebugger();
+            }
         }
+    };
+
+    // Listen to steamdeck router events, for example, fires when a user navigates from the library screen to the store screen.
+    const stopHistoryListener = History.listen((info) => {
+        handleLocationChange(info.pathname);
     });
 
-    // Initial check in case we loaded while already in the store
-    if (History.location?.pathname === '/steamweb') {
-        connectToStoreDebugger();
+
+    // Initial Check
+    if (History.location) {
+        handleLocationChange(History.location.pathname);
     }
 
-    // Return teardown for the patch: disconnect debugger and stop listening to history
     return () => {
         disconnectStoreDebugger();
         stopHistoryListener();
