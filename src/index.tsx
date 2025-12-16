@@ -22,7 +22,8 @@ export default definePlugin((serverApi: ServerAPI) => {
 
   serverApi.routerHook.addGlobalComponent("PriceComparison", PriceComparison )
 
-  const storePatch = patchStore(serverApi)
+  // patchStore returns a teardown function
+  const stopStorePatch = patchStore(serverApi)
 
 
   return {
@@ -31,7 +32,7 @@ export default definePlugin((serverApi: ServerAPI) => {
     icon: <FaDollarSign/>,
     onDismount() {
       serverApi.routerHook.removeGlobalComponent("PriceComparison")
-      storePatch
+      stopStorePatch()
     },
   };
 });
