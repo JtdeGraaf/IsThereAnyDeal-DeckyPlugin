@@ -73,16 +73,13 @@ export function patchStore(serverApi: ServerAPI): () => void {
             return;
         }
 
-        if (url.includes('https://store.steampowered.com')) {
-            const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
-            if (appId) {
-                CACHE.setValue(CACHE.APP_ID_KEY, appId);
-            } else {
-                CACHE.setValue(CACHE.APP_ID_KEY, "");
-            }
-        } else {
+        if (!url.includes('https://store.steampowered.com')) {
             CACHE.setValue(CACHE.APP_ID_KEY, "");
+            return;
         }
+
+        const appId = url.match(/\/app\/([\d]+)\/?/)?.[1];
+        CACHE.setValue(CACHE.APP_ID_KEY, appId ?? "");
     };
 
     const connectToStoreDebugger = async (retries = 3) => {
@@ -101,45 +98,53 @@ export function patchStore(serverApi: ServerAPI): () => void {
             const tabs: Tab[] = JSON.parse(response.result.body) || [];
             const storeTab = tabs.find((tab) => tab.url.includes('https://store.steampowered.com'));
 
-            if (storeTab && storeTab.webSocketDebuggerUrl) {
-                // 2. Update the appId from the current URL
-                updateAppIdFromUrl(storeTab.url);
+            // Early return if no store tab / websocket
+            if (!storeTab || !storeTab.webSocketDebuggerUrl) {
+                if (retries > 0 && isStoreMounted) {
+                    retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
+                }
+                return;
+            }
 
-                // 3. Connect to the websocket debugger to listen for navigation events
-                if (storeWebSocket) storeWebSocket.close();
-                storeWebSocket = new WebSocket(storeTab.webSocketDebuggerUrl);
+            // 2. Update the appId from the current URL
+            updateAppIdFromUrl(storeTab.url);
 
-                storeWebSocket.onopen = () => {
-                    if (isStoreMounted) {
-                        storeWebSocket?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
-                    } else {
-                        storeWebSocket?.close();
-                    }
-                };
+            // 3. Connect to the websocket debugger to listen for navigation events
+            if (storeWebSocket) {
+                storeWebSocket.close();
+            }
+            storeWebSocket = new WebSocket(storeTab.webSocketDebuggerUrl);
 
-                storeWebSocket.onmessage = (event) => {
-                    if (!isStoreMounted) return; // Ignore messages if we aren't in the store view
+            storeWebSocket.onopen = () => {
+                if (!isStoreMounted) {
+                    storeWebSocket?.close();
+                    return;
+                }
+                storeWebSocket?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
+            };
 
-                    try {
-                        const data = JSON.parse(event.data);
-                        // If a page navigation event is received, update the appId from the url
-                        if (data.method === "Page.frameNavigated" && data.params?.frame?.url) {
-                            updateAppIdFromUrl(data.params.frame.url);
-                        }
-                    } catch (e) {
-                        // ignore parsing errors
-                    }
-                };
-
-                storeWebSocket.onclose = () => {
-                    if (isStoreMounted) {
-                        CACHE.setValue(CACHE.APP_ID_KEY, "");
-                    }
+            storeWebSocket.onmessage = (event) => {
+                if (!isStoreMounted) {
+                    return; // Ignore messages if we aren't in the store view
                 }
 
-            } else if (retries > 0 && isStoreMounted) {
-                retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
+                try {
+                    const data = JSON.parse(event.data);
+                    // If a page navigation event is received, update the appId from the url
+                    if (data.method === "Page.frameNavigated" && data.params?.frame?.url) {
+                        updateAppIdFromUrl(data.params.frame.url);
+                    }
+                } catch (e) {
+                    // ignore parsing errors
+                }
+            };
+
+            storeWebSocket.onclose = () => {
+                if (isStoreMounted) {
+                    CACHE.setValue(CACHE.APP_ID_KEY, "");
+                }
             }
+
         } catch (e) {
             if (retries > 0 && isStoreMounted) {
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
@@ -154,7 +159,8 @@ export function patchStore(serverApi: ServerAPI): () => void {
                 isStoreMounted = true;
                 connectToStoreDebugger();
             }
-        } else {
+        }
+        else {
             if (isStoreMounted) {
                 disconnectStoreDebugger();
             }
@@ -172,6 +178,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
         handleLocationChange(History.location.pathname);
     }
 
+    // Return the teardown function
     return () => {
         disconnectStoreDebugger();
         stopHistoryListener();
