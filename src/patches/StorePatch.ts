@@ -34,7 +34,6 @@ export function patchStore(serverApi: ServerAPI): () => void {
         return () => { CACHE.setValue(CACHE.APP_ID_KEY, ""); };
     }
 
-    // Descriptive names for resources we manage
     let storeWebSocket: WebSocket | null = null;
     let retryTimer: NodeJS.Timeout | null = null;
 
