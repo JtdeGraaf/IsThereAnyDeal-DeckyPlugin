@@ -83,7 +83,11 @@ export function patchStore(serverApi: ServerAPI): () => void {
     };
 
     const connectToStoreDebugger = async (retries = 3) => {
-        if (!isStoreMounted) return; // Stop if we navigated away during the async wait
+        // Stop if we navigated away during the async wait
+        if (!isStoreMounted) {
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
+            return;
+        }
 
         try {
             // 1. Fetch the tabs
@@ -91,7 +95,9 @@ export function patchStore(serverApi: ServerAPI): () => void {
             if (!response.success) {
                 if (retries > 0 && isStoreMounted) {
                     retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
+                    return;
                 }
+                CACHE.setValue(CACHE.APP_ID_KEY, "");
                 return;
             }
 
@@ -102,7 +108,9 @@ export function patchStore(serverApi: ServerAPI): () => void {
             if (!storeTab || !storeTab.webSocketDebuggerUrl) {
                 if (retries > 0 && isStoreMounted) {
                     retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
+                    return;
                 }
+                CACHE.setValue(CACHE.APP_ID_KEY, "");
                 return;
             }
 
@@ -118,6 +126,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
             storeWebSocket.onopen = () => {
                 if (!isStoreMounted) {
                     storeWebSocket?.close();
+                    CACHE.setValue(CACHE.APP_ID_KEY, "");
                     return;
                 }
                 storeWebSocket?.send(JSON.stringify({ id: 1, method: "Page.enable" }));
@@ -125,6 +134,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
 
             storeWebSocket.onmessage = (event) => {
                 if (!isStoreMounted) {
+                    CACHE.setValue(CACHE.APP_ID_KEY, "");
                     return; // Ignore messages if we aren't in the store view
                 }
 
@@ -135,7 +145,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
                         updateAppIdFromUrl(data.params.frame.url);
                     }
                 } catch (e) {
-                    // ignore parsing errors
+                    CACHE.setValue(CACHE.APP_ID_KEY, "");
                 }
             };
 
@@ -148,7 +158,10 @@ export function patchStore(serverApi: ServerAPI): () => void {
         } catch (e) {
             if (retries > 0 && isStoreMounted) {
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
+                return;
             }
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
+            return;
         }
     };
 
