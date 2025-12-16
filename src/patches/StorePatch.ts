@@ -76,6 +76,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
             const response = await serverApi.fetchNoCors<{ body: string }>('http://localhost:8080/json');
             if (!response.success) {
                 console.error("[IsThereAnyDeal Store Patch] Failed to fetch tabs (fetchNoCors returned success=false)");
+                CACHE.setValue(CACHE.APP_ID_KEY, "");
                 if (retries > 0) {
                     retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
                 }
@@ -106,6 +107,7 @@ export function patchStore(serverApi: ServerAPI): () => void {
                             updateAppIdFromUrl(data.params.frame.url);
                         }
                     } catch (e) {
+                        CACHE.setValue(CACHE.APP_ID_KEY, "");
                         console.error("[IsThereAnyDeal Store Patch] Error parsing WS message", e);
                     }
                 };
@@ -116,10 +118,12 @@ export function patchStore(serverApi: ServerAPI): () => void {
                 }
 
             } else if (retries > 0) {
+                CACHE.setValue(CACHE.APP_ID_KEY, "");
                 // Store tab might not be ready yet - retry up to `retries` times
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
             }
         } catch (e) {
+            CACHE.setValue(CACHE.APP_ID_KEY, "");
             console.error("[IsThereAnyDeal Store Patch] Error connecting to Store tab:", e);
             if (retries > 0) {
                 retryTimer = setTimeout(() => connectToStoreDebugger(retries - 1), 1000);
