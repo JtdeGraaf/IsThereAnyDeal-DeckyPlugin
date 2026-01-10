@@ -1,6 +1,6 @@
 import { Navigation, } from 'decky-frontend-lib';
 import { useEffect, useRef, useState } from 'react'
-import { isThereAnyDealService } from '../service/IsThereAnyDealService';
+import { isThereAnyDealService, DealResult } from '../service/IsThereAnyDealService';
 import { Game } from '../models/Game';
 import { CACHE } from '../utils/Cache';
 import { Deal } from '../models/Deal';
@@ -14,6 +14,7 @@ const PriceComparison = () => {
     const [appId, setAppid] = useState<string | null>(null)
     const [game, setGame] = useState<Game | null>(null)
     const [deal, setDeal] = useState<Deal | null>(null)
+    const [historicalLow, setHistoricalLow] = useState<number | null>(null)
     const [isVisible, setIsVisible] = useState(false)
     const [loading, setLoading] = useState(false)
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -42,9 +43,10 @@ const PriceComparison = () => {
                 if (cancelled) return;
                 setGame(gameData)
                 return isThereAnyDealService.getBestDealForGameId(gameData.id);
-            }).then((dealData) => {
-                if (cancelled || !dealData) return;
-                setDeal(dealData);
+            }).then((dealResult: DealResult | undefined) => {
+                if (cancelled || !dealResult) return;
+                setDeal(dealResult.bestDeal);
+                setHistoricalLow(dealResult.historicalLow);
             }).catch((error: Error) => {
                 console.error(error);
             }).finally(() => {
@@ -54,6 +56,7 @@ const PriceComparison = () => {
         else {
             setIsVisible(false);
             setDeal(null);
+            setHistoricalLow(null);
             setGame(null);
         }
         return () => { cancelled = true; };
@@ -63,7 +66,7 @@ const PriceComparison = () => {
         if (!containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
         setMeasuredHeight(rect.height || BUTTON_HEIGHT);
-    }, [deal, loading, isVisible, appId]);
+    }, [deal, historicalLow, loading, isVisible, appId]);
 
     if (!isVisible || !appId) {
         return null;
@@ -130,7 +133,7 @@ const PriceComparison = () => {
                 disabled={!game}
                 onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/info/`)}
             >
-                {game ? `View on ITAD` : loading ? "…" : "—"}
+                {historicalLow!== null && historicalLow !== Infinity && deal ? `Low: ${deal.price.currency} ${historicalLow}` : (game ? `View on ITAD` : loading ? "…" : "—")}
             </button>
         </div>
     )

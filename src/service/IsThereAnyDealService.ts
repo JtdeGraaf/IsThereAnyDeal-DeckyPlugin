@@ -19,6 +19,11 @@ interface ServerResponseResult {
     body: string
 }
 
+export interface DealResult {
+    bestDeal: Deal;
+    historicalLow: number;
+}
+
 export let isThereAnyDealService: IsThereAnyDealService
 
 export class IsThereAnyDealService {
@@ -61,8 +66,8 @@ export class IsThereAnyDealService {
   }
 
 
-  public getBestDealForGameId = async (gameId: string): Promise<Deal> => { 
-    
+  public getBestDealForGameId = async (gameId: string): Promise<DealResult> => {
+
     const country: string = await SETTINGS.load(Setting.COUNTRY)
     const allowVouchersInPrices = await SETTINGS.load(Setting.ALLOW_VOUCHERS_IN_PRICES)
     
@@ -92,6 +97,8 @@ export class IsThereAnyDealService {
     let lowestPrice = Infinity;
     let lowestPriceDeal: Deal | null = null;
     let steamDeal: Deal | null = null;
+    let historicalLow = Infinity;
+
     const STEAM_SHOP_ID = Storefronts.meta.Steam.id;
 
     // Iterate over all deals to find the one with the lowest price, but only consider allowed storefronts
@@ -109,16 +116,25 @@ export class IsThereAnyDealService {
             lowestPrice = deal.price.amount;
             lowestPriceDeal = deal;
         }
+
+        if (deal.historyLow && deal.historyLow.amount < historicalLow) {
+             historicalLow = deal.historyLow.amount;
+        }
     }
 
     // Check if a deal with the lowest price was found
     if (!lowestPriceDeal) throw new Error("No deals found")
     
     // Check if the lowestPriceDeal is the same price as on Steam if so return the steamdeal
+    let finalDeal = lowestPriceDeal;
     if(steamDeal && steamDeal.price.amount === lowestPriceDeal.price.amount)  {
-        return steamDeal
+        finalDeal = steamDeal;
     }
-    return lowestPriceDeal
+
+    return {
+        bestDeal: finalDeal,
+        historicalLow: historicalLow
+    }
   }
 
     /**
