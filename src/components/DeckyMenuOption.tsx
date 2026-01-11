@@ -10,10 +10,6 @@ const DeckyMenuOption = () => {
     saveVouchers,
     country,
     saveCountry,
-    fontSize,
-    saveFontSize,
-    paddingBottom,
-    savePaddingBottom,
     storefronts,
     toggleStorefront,
     storefrontKeys
@@ -69,21 +65,6 @@ const DeckyMenuOption = () => {
                     />
                 </PanelSectionRow>
             ))}
-        </PanelSection>
-        <PanelSection title='Customization'>
-          <DropdownItem 
-            label="Font Size"
-            rgOptions={fontSizeOptions} 
-            selectedOption={fontSizeOptions.find(option => option.value === fontSize)?.data}
-            onChange={(option) => saveFontSize(option.data)}
-          ></DropdownItem>
-          <DropdownItem 
-            label="Padding Bottom"
-            description="Change how far the text will be from the bottom of the screen"
-            rgOptions={paddingOptions} 
-            selectedOption={paddingOptions.find(option => option.value === paddingBottom)?.data}
-            onChange={(option) => savePaddingBottom(option.data)}
-          ></DropdownItem>
         </PanelSection>
         <PanelSection title={'Links'}>
             <PanelSocialButton

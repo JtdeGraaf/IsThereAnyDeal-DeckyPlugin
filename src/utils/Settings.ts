@@ -5,8 +5,6 @@ import Storefronts from "../models/Storefront";
 export enum Setting {
   ALLOW_VOUCHERS_IN_PRICES = "allowVouchersInPrices",
   COUNTRY = "country",
-  FONTSIZE = "fontSize",
-  PADDING_BOTTOM = "paddingBottom",
   STOREFRONTS = "storefronts",
 
 }
@@ -18,8 +16,6 @@ export class Settings {
   public defaults: Record<Setting, any> = {
     allowVouchersInPrices: false,
     country: "US",
-    fontSize: 16,
-    paddingBottom: 10,
     storefronts: [Storefronts.meta.Steam]
   };
 
