@@ -4,6 +4,7 @@ import { isThereAnyDealService, DealResult } from '../service/IsThereAnyDealServ
 import { Game } from '../models/Game';
 import { CACHE } from '../utils/Cache';
 import { Deal } from '../models/Deal';
+import { formatPrice } from '../utils/Currency';
 
 const SAFE_ZONE_FROM_BOTTOM = 8;
 const LEFT_SAFE_MARGIN = 150;
@@ -106,7 +107,7 @@ const PriceComparison = () => {
                 onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/info/`)}
             >
                 {deal
-                    ? `Now ${deal.price.currency} ${deal.price.amount}`
+                    ? `Now ${formatPrice(deal.price.currency, deal.price.amount)}`
                     : loading
                         ? "Searching…"
                         : "No deal"}
@@ -127,7 +128,9 @@ const PriceComparison = () => {
                 disabled={!game}
                 onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/history/`)}
             >
-                {historicalLow !== null && historicalLow !== Infinity && deal ? `Low ${deal.price.currency} ${historicalLow}` : (game ? `View on ITAD` : loading ? "…" : "—")}
+                {historicalLow !== null && historicalLow !== Infinity && deal
+                    ? `Low ${formatPrice(deal.price.currency, historicalLow)}`
+                    : (game ? `View` : loading ? "…" : "—")}
             </button>
         </div>
     )
