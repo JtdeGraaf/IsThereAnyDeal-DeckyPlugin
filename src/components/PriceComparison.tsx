@@ -106,13 +106,11 @@ const PriceComparison = () => {
                     whiteSpace: "nowrap",
                     cursor: deal && !isSteamLowest ? "pointer" : "default",
                 }}
-                disabled={!deal || isSteamLowest}
-                onClick={() => deal && !isSteamLowest && deal.url && Navigation.NavigateToExternalWeb(deal.url)}
+                disabled={!game}
+                onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/info/`)}
             >
                 {deal
-                    ? isSteamLowest
-                        ? "Steam best price"
-                        : `${deal.price.currency} ${deal.price.amount}`
+                    ? `Now ${deal.price.currency} ${deal.price.amount}`
                     : loading
                         ? "Searching…"
                         : "No deal"}
@@ -131,9 +129,9 @@ const PriceComparison = () => {
                     cursor: game ? "pointer" : "default",
                 }}
                 disabled={!game}
-                onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/info/`)}
+                onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/history/`)}
             >
-                {historicalLow!== null && historicalLow !== Infinity && deal ? `Low: ${deal.price.currency} ${historicalLow}` : (game ? `View on ITAD` : loading ? "…" : "—")}
+                {historicalLow !== null && historicalLow !== Infinity && deal ? `Low ${deal.price.currency} ${historicalLow}` : (game ? `View on ITAD` : loading ? "…" : "—")}
             </button>
         </div>
     )
