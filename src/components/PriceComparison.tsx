@@ -72,8 +72,6 @@ const PriceComparison = () => {
         return null;
     }
 
-    const isSteamLowest = deal?.shop?.name?.toLowerCase() === "steam";
-
     return (
         <div
             ref={containerRef}
@@ -96,15 +94,13 @@ const PriceComparison = () => {
                     borderRadius: 12,
                     border: "1px solid rgba(255,255,255,0.2)",
                     background: deal
-                        ? isSteamLowest
-                            ? "rgba(102, 192, 232, 0.15)" // Steam Blue translucent
-                            : "#1b2838" // Steam Dark Navy
+                        ? "#1b2838" // Steam Dark Navy
                         : "rgba(255,255,255,0.08)",
-                    color: isSteamLowest ? "#66c0f4" : "#c7d5e0", // Steam Blue vs Steam Grey text
+                    color: "#c7d5e0", // Steam Blue vs Steam Grey text
                     fontWeight: 600,
                     fontSize: 13,
                     whiteSpace: "nowrap",
-                    cursor: deal && !isSteamLowest ? "pointer" : "default",
+                    cursor: deal ? "pointer" : "default",
                 }}
                 disabled={!game}
                 onClick={() => game && Navigation.NavigateToExternalWeb(`https://isthereanydeal.com/game/${game.slug}/info/`)}
